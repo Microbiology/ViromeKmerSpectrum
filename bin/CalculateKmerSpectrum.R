@@ -35,7 +35,7 @@ fit<-kmeans(KMEAN_DIST, 8)
 clusplot(KMEAN_DIST, fit$cluster, shade=TRUE, color=TRUE)
 
 hvar <- hclust(DistMatrix)
-pdf(file="/Users/Hannigan/git/ViromeKmerSpectrum/data/kmerSpectrumTree.pdf", height=30, width=8)
+pdf(file="/Users/Hannigan/git/ViromeKmerSpectrum/Figures/kmerSpectrumTree.pdf", height=50, width=8)
 plot(as.phylo(hvar), cex = 0.2)
 dev.off()
 
