@@ -6,13 +6,13 @@
 # NOTE: I wrote this to be run locally, not on a server
 
 # Set the variables to be used in this script
-export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
+export WorkingDirectory=/home/ghannig/git/ViromeKmerSpectrum/data/
 export Output='LengthBenchmark'
 
-export LocalPath=/Users/Hannigan/git/ViromeKmerSpectrum/bin/
+export LocalPath=/home/ghannig/git/ViromeKmerSpectrum/bin/
 
-export TrainingSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/BlastnBenchmark/trainingSet.fa
-export TestSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/BlastnBenchmark/testSet.fa
+export TrainingSet=/home/ghannig/git/ViromeKmerSpectrum/data/BlastnBenchmark/trainingSet.fa
+export TestSet=/home/ghannig/git/ViromeKmerSpectrum/data/BlastnBenchmark/testSet.fa
 
 # Make the output directory and move to the working directory
 echo Creating output directory...
