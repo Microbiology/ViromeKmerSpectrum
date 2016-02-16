@@ -10,7 +10,6 @@ export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
 export Output='BlastnBenchmark'
 
 export PhageReference=/Users/Hannigan/git/ViromeKmerSpectrum/data/PhageSVAFormat.fa
-export PhageContigs=/Users/Hannigan/git/ViromeKmerSpectrum/data/PhageContigSim.fa
 
 export LocalPath=/Users/Hannigan/git/ViromeKmerSpectrum/bin/
 export BlastPath=/Users/Hannigan/Documents/ncbi-blast-2.3.0+/bin/

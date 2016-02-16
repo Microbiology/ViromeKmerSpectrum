@@ -7,8 +7,8 @@ library(caret)
 library(C50)
 library(randomForest)
 library(ROCR)
-library(doMC)
-registerDoMC(4)
+#library(doMC)
+#registerDoMC(4)
 
 
 INPUT <- read.delim("/Users/Hannigan/git/ViromeKmerSpectrum/data/kmerSpectrum.tsv", sep="\t", header=F)
@@ -34,15 +34,18 @@ crx <- TCINPUT[ sample( nrow( TCINPUT ) ), ]
 X <- crx[,1:256]
 y <- as.factor(crx[,257])
 trainX <- X[1:1000,]
+trainX <- as.data.frame(sapply(trainX, function(x) x/sum(x)))
 trainy <- y[1:1000]
+
 testX <- X[1001:2011,]
+testX <- as.data.frame(sapply(testX, function(x) x/sum(x)))
 testy <- y[1001:2011]
 
-# Train
-tuned <- train(trainX, factor(trainy), method = "C5.0", tuneLength = 11, trControl = trainControl(method = "repeatedcv", repeats = 5), metric = "Kappa")
+# # Train
+# tuned <- train(trainX, factor(trainy), method = "C5.0", tuneLength = 11, trControl = trainControl(method = "repeatedcv", repeats = 5), metric = "Kappa")
 
 #Boost
-model <-  C50::C5.0(trainX, trainy, trials=75)
+model <-  C50::C5.0(trainX, trainy, trials=75, rules=TRUE)
 summary(model)
 
 p <- predict(model, testX, type="class")

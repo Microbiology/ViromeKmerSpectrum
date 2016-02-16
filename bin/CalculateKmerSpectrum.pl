@@ -31,7 +31,8 @@ my $key;
 GetOptions(
 	'h|help' => \$opt_help,
 	'i|input=s' => \$input,
-	'o|output=s' => \$output
+	'o|output=s' => \$output,
+	'w|window=n' => \$window
 );
 
 pod2usage(-verbose => 1) && exit if defined $opt_help;
