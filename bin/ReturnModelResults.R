@@ -9,6 +9,8 @@ library(ape)
 library(caret)
 library(C50)
 library(optparse)
+library(doMC)
+registerDoMC(4)
 
 # Parse the paramters from the command line.
 option_list = list(
@@ -54,7 +56,7 @@ testX <- as.data.frame(sapply(testX, function(x) x/sum(x)))
 testy <- as.factor(ContigsDf[,ColCount])
 
 #Boost
-model <-  C50::C5.0(trainX, trainy, trials=50)
+model <-  C50::C5.0(trainX, trainy, trials=10)
 
 pred <- predict(model, testX)
 results <- postResample(pred, testy)

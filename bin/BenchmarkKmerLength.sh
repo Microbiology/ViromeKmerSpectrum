@@ -6,19 +6,18 @@
 # NOTE: I wrote this to be run locally, not on a server
 
 # Set the variables to be used in this script
-export WorkingDirectory=/home/ghannig/git/ViromeKmerSpectrum/data/
+export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
 export Output='LengthBenchmark'
 
-export LocalPath=/home/ghannig/git/ViromeKmerSpectrum/bin/
+export LocalPath=/Users/Hannigan/git/ViromeKmerSpectrum/bin/
 
-export TrainingSet=/home/ghannig/git/ViromeKmerSpectrum/data/BlastnBenchmark/trainingSet.fa
-export TestSet=/home/ghannig/git/ViromeKmerSpectrum/data/BlastnBenchmark/testSet.fa
+export TrainingSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/BlastnBenchmark/trainingSet.fa
+export TestSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/BlastnBenchmark/testSet.fa
 
 # Make the output directory and move to the working directory
 echo Creating output directory...
 cd ${WorkingDirectory}
 mkdir ./${Output}
-# Appending output so ensure it is clean going in
 
 ModelWithLength () {
 	# 1 = Window size
@@ -34,20 +33,20 @@ ModelWithLength () {
 	perl ${LocalPath}CalculateKmerSpectrum.pl \
 		-i ${3} \
 		-o ./${Output}/testingKmer.tsv \
-		-w ${w}
+		-w ${1}
 
 	# Run kmer spectra through predictive model and collect output
 	Rscript ${LocalPath}ReturnModelResults.R \
 		-r ./${Output}/trainingKmer.tsv \
 		-t ./${Output}/testingKmer.tsv \
-		>> ./${Output}/ModelAccuracyOutput.tsv
+		> ./${Output}/${1}-ModelAccuracyOutput.tsv
 }
 
 export -f ModelWithLength
 
-for iterator in $(seq 4 4 60); do
+for i in $(seq 4 4 40); do
 	ModelWithLength \
-		${iterator} \
+		${i} \
 		${TrainingSet} \
 		${TestSet}
 done

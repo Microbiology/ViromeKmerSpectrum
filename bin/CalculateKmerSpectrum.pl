@@ -54,7 +54,6 @@ sub ReadInFasta {
 			$FastaID =~ s/\>//;
 			$FastaID =~ s/_//g;
 			$FastaErrorCounter = 1;
-			print "Added $FastaID\n";
 		} elsif ($line =~ /\>/ && $FastaErrorCounter == 1) {
 			die "KILLED BY BAD FASTA! There was no sequence before ID $line: $!";
 		} elsif ($line !~ /\>/ && $FastaErrorCounter == 0) {
@@ -75,13 +74,12 @@ sub ReadInFasta {
 }
 
 sub SlideForContigSpectrum {
+	print "Running sliding window\n";
 	my $fastaHash = shift;
-	print "Reading $fastaHash\n";
 	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
 		# Reset counter and hash
 		undef %windowHash;
 		$windowValue = 0;
-		print "The key is $fastaKey\n";
 		$length = length($fastaSeq) - 1;
 		$correct = $length - $window;
 		foreach my $interation (0 .. $correct) {
