@@ -49,6 +49,7 @@ ModelWithLength () {
 		-t ./${Output}/testingKmer.tsv \
 		-a ${arow} \
 		-b ${brow} \
+		-s ./${Output}/${1}-scree.pdf \
 		> ./${Output}/${1}-ModelAccuracyOutput.tsv
 }
 
