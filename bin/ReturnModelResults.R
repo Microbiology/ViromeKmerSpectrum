@@ -21,7 +21,9 @@ option_list = list(
   make_option(c("-a", "--arow"), type="numeric", default=NULL, 
               help="row number for reference", metavar="numeric"),
   make_option(c("-b", "--brow"), type="numeric", default=NULL, 
-              help="row number for test", metavar="numeric")
+              help="row number for test", metavar="numeric"),
+  make_option(c("-s", "--scree"), type="character", default=NULL, 
+              help="scree figure output", metavar="character")
 ); 
  
 opt_parser = OptionParser(option_list=option_list);
@@ -38,6 +40,16 @@ FormatForPredModel <- function(input) {
   rownames(CINPUT) <- CINPUT$V1
   CINPUT <- (CINPUT[,-1])
   CINPUT[is.na(CINPUT)] <- 0
+  # PCA
+  PcaInput <- prcomp(CINPUT)
+  pcaPercentVar <- PcaInput$sd^2/sum(PcaInput$sd^2)*100
+  PcaScree <- melt(pcaPercentVar)
+  PcaScree$name <- sequence(length(row.names(PcaScree)))
+  PcaScreePlot <- ggplot(PcaScree, aes(x=name, y=value)) + theme_classic() + geom_point() + geom_path() + xlab("PCA Component") + ylab("Percent Variance Explained")
+  pdf(file=opt$scree, height=6, width=8)
+    PcaScreePlot
+  dev.off()
+  # End PCA
   TCINPUT <- as.data.frame(t(CINPUT))
   rownames(TCINPUT) <- gsub("\\;","_", rownames(TCINPUT))
   TCINPUT$ID <- sub("[p]hage.*", "phage", rownames(TCINPUT))
@@ -48,27 +60,27 @@ FormatForPredModel <- function(input) {
 ReferenceDf <- as.data.frame(FormatForPredModel(INPUT))
 ContigsDf <- as.data.frame(FormatForPredModel(CONTIGS))
 
-# Get number of columns
-ColCount <- ncol(ReferenceDf)
-ColCountContigs <- ncol(ContigsDf)
+# # Get number of columns
+# ColCount <- ncol(ReferenceDf)
+# ColCountContigs <- ncol(ContigsDf)
 
-# Create feature matrix and target vector
-trainX <- ReferenceDf[,-ColCount]
-trainX <- as.data.frame(sapply(trainX, function(x) x/sum(x)))
-trainy <- as.factor(ReferenceDf[,ColCount])
+# # Create feature matrix and target vector
+# trainX <- ReferenceDf[,-ColCount]
+# # trainX <- as.data.frame(sapply(trainX, function(x) x/sum(x)))
+# trainy <- as.factor(ReferenceDf[,ColCount])
 
-testX <- ContigsDf[,-ColCount]
-testX <- as.data.frame(sapply(testX, function(x) x/sum(x)))
-testy <- as.factor(ContigsDf[,ColCount])
+# testX <- ContigsDf[,-ColCount]
+# # testX <- as.data.frame(sapply(testX, function(x) x/sum(x)))
+# testy <- as.factor(ContigsDf[,ColCount])
 
-#print("Training model", stderr())
+# #print("Training model", stderr())
 
-#Boost
-model <-  C50::C5.0(trainX, trainy, trials=25)
+# #Boost
+# model <-  C50::C5.0(trainX, trainy, trials=25)
 
-#print("Testing model", stderr())
+# #print("Testing model", stderr())
 
-pred <- predict(model, testX)
-results <- postResample(pred, testy)
+# pred <- predict(model, testX)
+# results <- postResample(pred, testy)
 
-write(results, stdout())
+# write(results, stdout())
