@@ -54,12 +54,13 @@ FormatForPredModel <- function(input) {
   return(list(TCINPUT, PcaScreePlot))
 }
 
-list[ReferenceDf, ReferencePlot] <- FormatForPredModel(INPUT)
-ReferenceDf <- as.data.frame(ReferenceDf)
-list[ContigsDf, ContigsPlot] <- FormatForPredModel(CONTIGS)
-ContigsDf <- as.data.frame(ContigsDf)
+ReferenceList <- FormatForPredModel(INPUT)
+ReferenceDf <- as.data.frame(ReferenceList[1])
+ReferencePlot <- ReferenceList[2]
 
-head(ReferenceDf)
+ContigList <- FormatForPredModel(CONTIGS)
+ContigsDf <- as.data.frame(ContigList[1])
+ContigsPlot <- ContigList[2]
 
 pdf(file=opt$scree, width=8, height=6)
   ReferencePlot
