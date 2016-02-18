@@ -54,8 +54,10 @@ FormatForPredModel <- function(input) {
   return(list(TCINPUT, PcaScreePlot))
 }
 
-list[ReferenceDf, ReferencePlot] <- as.data.frame(FormatForPredModel(INPUT))
-list[ContigsDf, ContigsPlot] <- as.data.frame(FormatForPredModel(CONTIGS))
+list[ReferenceDf, ReferencePlot] <- FormatForPredModel(INPUT)
+ReferenceDf <- as.data.frame(ReferenceDf)
+list[ContigsDf, ContigsPlot] <- FormatForPredModel(CONTIGS)
+ContigsDf <- as.data.frame(ContigsDf)
 
 head(ReferenceDf)
 
