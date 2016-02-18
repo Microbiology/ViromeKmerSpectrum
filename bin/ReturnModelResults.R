@@ -47,7 +47,7 @@ FormatForPredModel <- function(input) {
   PcaScree$name <- sequence(length(row.names(PcaScree)))
   PcaScreePlot <- ggplot(PcaScree, aes(x=name, y=value)) + theme_classic() + geom_point() + geom_path() + xlab("PCA Component") + ylab("Percent Variance Explained")
   # End PCA 
-  TCINPUT <- as.data.frame(t(CINPUT))
+  TCINPUT <- as.data.frame(t(PcaInput))
   rownames(TCINPUT) <- gsub("\\;","_", rownames(TCINPUT))
   TCINPUT$ID <- sub("[p]hage.*", "phage", rownames(TCINPUT))
   rownames(TCINPUT) <- NULL
@@ -58,12 +58,16 @@ ReferenceList <- FormatForPredModel(INPUT)
 ReferenceDf <- as.data.frame(ReferenceList[1])
 ReferencePlot <- ReferenceList[2]
 
+print(head(ReferenceDf))
+
 ContigList <- FormatForPredModel(CONTIGS)
 ContigsDf <- as.data.frame(ContigList[1])
 ContigsPlot <- ContigList[2]
 
+# Print the plots to see what the screes look like
 pdf(file=opt$scree, width=8, height=6)
   ReferencePlot
+  ContigsPlot
 dev.off()
 
 # # Get number of columns
