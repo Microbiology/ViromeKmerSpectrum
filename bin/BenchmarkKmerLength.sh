@@ -3,6 +3,9 @@
 # Pat Schloss Lab
 # University of Michigan
 
+# Load in modules
+module load R/3.2.3
+
 # NOTE: I wrote this to be run locally, not on a server
 
 # Set the variables to be used in this script
@@ -35,8 +38,8 @@ ModelWithLength () {
 		-o ./${Output}/testingKmer.tsv \
 		-w ${1}
 
-	arow=$(wc -l ./${Output}/trainingKmer.tsv | gsed 's/^ *//' | gsed 's/ .*//')
-	brow=$(wc -l ./${Output}/testingKmer.tsv | gsed 's/^ *//' | gsed 's/ .*//')
+	arow=$(wc -l ./${Output}/trainingKmer.tsv | sed 's/^ *//' | sed 's/ .*//')
+	brow=$(wc -l ./${Output}/testingKmer.tsv | sed 's/^ *//' | sed 's/ .*//')
 	echo Train length is ${arow}
 	echo Test length is ${brow}
 

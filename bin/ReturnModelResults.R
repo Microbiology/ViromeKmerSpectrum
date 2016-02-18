@@ -9,6 +9,8 @@ library(ape)
 library(caret)
 library(C50)
 library(optparse)
+library(doMC)
+registerDoMC(8)
 
 # Parse the paramters from the command line.
 option_list = list(
@@ -25,7 +27,7 @@ option_list = list(
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
 
-print("Reading in files", stderr())
+#print("Reading in files", stderr())
 
 INPUT <- read.delim(file=opt$reference, sep="\t", header=F, colClasses = c("factor", "integer", "factor"), nrows=opt$arow, comment.char="")
 CONTIGS <- read.delim(file=opt$test, sep="\t", header=F, colClasses = c("factor", "integer", "factor"), nrows=opt$brow, comment.char="")
@@ -59,12 +61,12 @@ testX <- ContigsDf[,-ColCount]
 testX <- as.data.frame(sapply(testX, function(x) x/sum(x)))
 testy <- as.factor(ContigsDf[,ColCount])
 
-print("Training model", stderr())
+#print("Training model", stderr())
 
 #Boost
-model <-  C50::C5.0(trainX, trainy, trials=10)
+model <-  C50::C5.0(trainX, trainy, trials=25)
 
-print("Testing model", stderr())
+#print("Testing model", stderr())
 
 pred <- predict(model, testX)
 results <- postResample(pred, testy)
