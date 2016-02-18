@@ -49,7 +49,7 @@ FormatForPredModel <- function(input) {
   pdf(file=opt$scree, height=6, width=8)
     PcaScreePlot
   dev.off()
-  # End PCA
+  # End PCA 
   TCINPUT <- as.data.frame(t(CINPUT))
   rownames(TCINPUT) <- gsub("\\;","_", rownames(TCINPUT))
   TCINPUT$ID <- sub("[p]hage.*", "phage", rownames(TCINPUT))
