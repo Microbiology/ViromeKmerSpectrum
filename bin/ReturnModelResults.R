@@ -47,7 +47,7 @@ FormatForPredModel <- function(input) {
   PcaScree$name <- sequence(length(row.names(PcaScree)))
   PcaScreePlot <- ggplot(PcaScree, aes(x=name, y=value)) + theme_classic() + geom_point() + geom_path() + xlab("PCA Component") + ylab("Percent Variance Explained")
   # End PCA 
-  TCINPUT <- as.data.frame(t(PcaInput))
+  TCINPUT <- as.data.frame(t(as.data.frame(PcaInput)))
   rownames(TCINPUT) <- gsub("\\;","_", rownames(TCINPUT))
   TCINPUT$ID <- sub("[p]hage.*", "phage", rownames(TCINPUT))
   rownames(TCINPUT) <- NULL
