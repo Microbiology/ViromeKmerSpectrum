@@ -39,6 +39,7 @@ my $progress;
 GetOptions(
 	'h|help' => \$opt_help,
 	'i|input=s' => \$input,
+	't|test=s' => \$test,
 	'o|output=s' => \$output,
 	'w|window=n' => \$window,
 	'm|max=n' => \$maxCount
@@ -47,6 +48,7 @@ GetOptions(
 pod2usage(-verbose => 1) && exit if defined $opt_help;
 
 open(IN, "<$input") || die "Unable to read $input: $!";
+open(TEST, "<$test") || die "Unable to read $test: $!";
 open(OUT, ">$output") || die "Unable to write to $output: $!";
 
 sub ReadInFasta {
@@ -105,6 +107,8 @@ sub SlideForKmerSpectrum {
 		}
 		# For now print it out
 		foreach my $key (sort keys %windowHash){
+			# print "Key is $key\n";
+			# print "ID is $fastaKey\n";
 			$TestVal = %windowHash -> {$key};
 			$skip = 1 if ($TestVal >= $maxCount);
 			# mean
@@ -112,6 +116,8 @@ sub SlideForKmerSpectrum {
 			++$MeanCounter;
 			# \mean
 		}
+		# Do not filter if skip variable is zero
+		$skip = 0 if ($maxCount == 0);
 		next if ($skip == 1);
 		foreach my $key (sort keys %windowHash){
 			$TestVal = %windowHash -> {$key};
