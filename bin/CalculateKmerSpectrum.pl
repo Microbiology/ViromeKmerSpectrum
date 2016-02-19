@@ -18,6 +18,9 @@ my %fastaHash;
 my %windowHash;
 my %kmerTableHash;
 my %KmerReadHash;
+my %TestHash;
+my %testHash;
+my %FinalHash;
 my $window = 4;
 my $opt_help;
 my $input;
@@ -29,11 +32,14 @@ my $correct = 0;
 my $windowValue;
 my $key;
 my $skip = 0;
-my $maxCount = 1000;
+my $maxCount = 0;
+my $minCount = 0;
 my $Mean;
-my $MeanCounter;
+my $MeanCounter = 0;
 my $MeanSum = 0;
 my $progress;
+my $test;
+my $testOuput;
 
 # Set the options
 GetOptions(
@@ -41,8 +47,10 @@ GetOptions(
 	'i|input=s' => \$input,
 	't|test=s' => \$test,
 	'o|output=s' => \$output,
+	'r|testOuput=s' => \$testOuput,
 	'w|window=n' => \$window,
-	'm|max=n' => \$maxCount
+	'm|max=n' => \$maxCount,
+	'q|min=n' => \$minCount
 );
 
 pod2usage(-verbose => 1) && exit if defined $opt_help;
@@ -50,9 +58,12 @@ pod2usage(-verbose => 1) && exit if defined $opt_help;
 open(IN, "<$input") || die "Unable to read $input: $!";
 open(TEST, "<$test") || die "Unable to read $test: $!";
 open(OUT, ">$output") || die "Unable to write to $output: $!";
+open(TOUT, ">$testOuput") || die "Unable to write to $testOuput: $!";
 
 sub ReadInFasta {
 	print "Reading fasta\n";
+	# Ensure the hash is empty before use
+	undef %FastaHash;
 	# Set the variable for the fasta input file
 	my $fastaInput = shift;
 	# Setup fasta hash to return at the end
@@ -86,12 +97,43 @@ sub ReadInFasta {
 
 sub SlideForKmerSpectrum {
 	print "Running sliding window\n";
-	my $fastaHash = shift;
-	my $KeyCount = keys %{$fastaHash};
+	my ($fastaHash, $testHash) = @_;
+	my $TestKeyCount = keys %{$testHash};
+	my $TrainKeyCount = keys %{$fastaHash};
 	my $ProgressCounter = 1;
-	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
-		$progress = 100 * $ProgressCounter / $KeyCount;
-		print STDERR "\rProgress: $progress \%";
+	# Get hash of kmer patterns within test
+	while (my ($fastaKey, $fastaSeq) = each(%{$testHash})) {
+		# Use 50 because this is half of the percent progress
+		$progress = 100 * $ProgressCounter / $TestKeyCount;
+		print STDERR "\rFilter progress (1/3): $progress \%";
+		++$ProgressCounter;
+		$skip = 0;
+		undef %TestHash;
+		my $TestVal = 0;
+		$windowValue = 0;
+		$length = length($fastaSeq) - 1;
+		$correct = $length - $window;
+		foreach my $interation (0 .. $correct) {
+			# print "Interating $interation\n";
+			$windowValue = substr $fastaSeq, $interation, $window;
+			# Count the occurnace of that window sequence
+			# print "Window value is $windowValue\n";
+			$TestHash{$windowValue}++;
+		}
+		foreach my $key (sort keys %TestHash){
+			$TestVal = %TestHash -> {$key};
+			$skip = 1 if ($TestVal >= $maxCount && $maxCount != 0 && $minCount == 0);
+			$skip = 1 if ($TestVal < $minCount && $minCount != 0 && $maxCount == 0);
+		}
+		next if ($skip == 1);
+		%FinalHash = (%FinalHash, %TestHash);
+	}
+	undef %TestHash;
+	$ProgressCounter = 1;
+	# Print the test
+	while (my ($fastaKey, $fastaSeq) = each(%{$testHash})) {
+		$progress = 100 * $ProgressCounter / $TestKeyCount ;
+		print STDERR "\rWrite test progress (2/3): $progress \%";
 		++$ProgressCounter;
 		my $TestVal = 0;
 		# Reset counter and hash
@@ -105,37 +147,72 @@ sub SlideForKmerSpectrum {
 			# Count the occurnace of that window sequence
 			$windowHash{$windowValue}++;
 		}
-		# For now print it out
-		foreach my $key (sort keys %windowHash){
-			# print "Key is $key\n";
-			# print "ID is $fastaKey\n";
+		# Only get the kmers present in the test set
+		foreach my $key (sort keys %FinalHash){
+			unless (exists %windowHash -> {$key}){
+				print TOUT "$key\t0\t$fastaKey\n";
+				next;
+			}
 			$TestVal = %windowHash -> {$key};
-			$skip = 1 if ($TestVal >= $maxCount);
 			# mean
 			$MeanSum = $MeanSum + $TestVal;
 			++$MeanCounter;
 			# \mean
+			print TOUT "$key\t$TestVal\t$fastaKey\n";
 		}
-		# Do not filter if skip variable is zero
-		$skip = 0 if ($maxCount == 0);
-		next if ($skip == 1);
-		foreach my $key (sort keys %windowHash){
+	}
+	$Mean = $MeanSum / $MeanCounter unless ($MeanCounter == 0);
+	print STDERR "\nMean unfiltered $window mer frequency in test set is $Mean\n";
+	undef %testHash;
+	$ProgressCounter = 1;
+	# Print the training set
+	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
+		$progress = 100 * $ProgressCounter / $TrainKeyCount ;
+		print STDERR "\rWrite train progress (3/3): $progress \%";
+		++$ProgressCounter;
+		my $TestVal = 0;
+		# Reset counter and hash
+		undef %windowHash;
+		$windowValue = 0;
+		$length = length($fastaSeq) - 1;
+		$correct = $length - $window;
+		foreach my $interation (0 .. $correct) {
+			# print "Interating $interation\n";
+			$windowValue = substr $fastaSeq, $interation, $window;
+			# Count the occurnace of that window sequence
+			$windowHash{$windowValue}++;
+		}
+		# Only get the kmers present in the test set
+		foreach my $key (sort keys %FinalHash){
+			unless (exists %windowHash -> {$key}){
+				print OUT "$key\t0\t$fastaKey\n";
+				next;
+			}
 			$TestVal = %windowHash -> {$key};
+			# mean
+			$MeanSum = $MeanSum + $TestVal;
+			++$MeanCounter;
+			# \mean
 			print OUT "$key\t$TestVal\t$fastaKey\n";
 		}
 	}
-	$Mean = $MeanSum / $MeanCounter;
+	$Mean = $MeanSum / $MeanCounter unless ($MeanCounter == 0);
 	print STDERR "\nMean unfiltered $window mer frequency is $Mean\n";
 }
 
 my %Fasta = ReadInFasta(\*IN);
-# print Dumper \%Fasta;
-SlideForKmerSpectrum(\%Fasta);
+my %FilterFasta = ReadInFasta(\*TEST);
+# print Dumper \%FilterFasta;
+SlideForKmerSpectrum(\%Fasta, \%FilterFasta);
 
 close(IN);
 close(OUT);
+close(TEST);
+close(TOUT);
 
 # Get the toal time to run the script
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print STDERR "\nCalculated kmer spectrum in $run_time seconds.\n";
+
+
