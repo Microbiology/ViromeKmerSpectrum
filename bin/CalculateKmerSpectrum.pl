@@ -16,6 +16,8 @@ my $start_run = time();
 my %FastaHash;
 my %fastaHash;
 my %windowHash;
+my %kmerTableHash;
+my %KmerReadHash;
 my $window = 4;
 my $opt_help;
 my $input;
@@ -26,13 +28,19 @@ my $length = 0;
 my $correct = 0;
 my $windowValue;
 my $key;
+my $skip = 0;
+my $maxCount = 1000;
+my $Mean;
+my $MeanCounter;
+my $MeanSum;
 
 # Set the options
 GetOptions(
 	'h|help' => \$opt_help,
 	'i|input=s' => \$input,
 	'o|output=s' => \$output,
-	'w|window=n' => \$window
+	'w|window=n' => \$window,
+	'm|max=n' => \$maxCount
 );
 
 pod2usage(-verbose => 1) && exit if defined $opt_help;
@@ -41,7 +49,7 @@ open(IN, "<$input") || die "Unable to read $input: $!";
 open(OUT, ">$output") || die "Unable to write to $output: $!";
 
 sub ReadInFasta {
-	print "Made it to fasta\n";
+	print "Reading fasta\n";
 	# Set the variable for the fasta input file
 	my $fastaInput = shift;
 	# Setup fasta hash to return at the end
@@ -73,7 +81,7 @@ sub ReadInFasta {
 	return %FastaHash;
 }
 
-sub SlideForContigSpectrum {
+sub SlideForKmerSpectrum {
 	print "Running sliding window\n";
 	my $fastaHash = shift;
 	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
@@ -90,13 +98,51 @@ sub SlideForContigSpectrum {
 		}
 		# For now print it out
 		foreach $key (sort keys %windowHash){
-			print OUT "$key\t$windowHash{$key}\t$fastaKey\n";
+			$kmerTableHash{$key}{$fastaKey}=$windowHash{$key};
+			# print OUT "$key\t$windowHash{$key}\t$fastaKey\n";
 		}
 	}
+	return %kmerTableHash;
+}
+
+sub FilterKmerSpectrum {
+	print "Filtering the spectrum\n";
+	my $KmerReadHash = shift;
+	foreach my $KmerKey (sort keys %$KmerReadHash) {
+		my $TestVal = 0;
+		$skip = 0;
+		# Iterate through each hash
+		foreach my $IdKey (sort keys %{ $KmerReadHash -> {$KmerKey} }) {
+			$TestVal = $KmerReadHash -> {$KmerKey}{$IdKey};
+			$skip = 1 if ($TestVal >= $maxCount);
+			# mean
+			$MeanSum = $MeanSum + $TestVal;
+			++$MeanCounter;
+			# \mean
+		}
+		next if ($skip == 1);
+		foreach my $IdKey (sort keys %{ $KmerReadHash -> {$KmerKey} }) {
+			$TestVal = $KmerReadHash -> {$KmerKey}{$IdKey};
+			print OUT "$KmerKey\t$TestVal\t$IdKey\n";
+		}
+	}
+	$Mean = $MeanSum / $MeanCounter;
+	print STDERR "Mean unfiltered $window mer frequency is $Mean\n";
 }
 
 my %Fasta = ReadInFasta(\*IN);
 # print Dumper \%Fasta;
-SlideForContigSpectrum(\%Fasta);
+my %kmerHash = SlideForKmerSpectrum(\%Fasta);
+# Undefine hash to save memory
+undef %{$Fasta};
+# print Dumper \%kmerHash;
+# print "$_\n" for sort keys %kmerHash;
+FilterKmerSpectrum(\%kmerHash);
 
+close(IN)
+close(OUT)
 
+# Get the toal time to run the script
+my $end_run = time();
+my $run_time = $end_run - $start_run;
+print STDERR "\nCalculated kmer spectrum in $run_time seconds.\n";
