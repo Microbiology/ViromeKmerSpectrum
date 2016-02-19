@@ -85,6 +85,7 @@ sub SlideForKmerSpectrum {
 	print "Running sliding window\n";
 	my $fastaHash = shift;
 	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
+		my $TestVal = 0;
 		# Reset counter and hash
 		undef %windowHash;
 		$windowValue = 0;
@@ -97,12 +98,22 @@ sub SlideForKmerSpectrum {
 			$windowHash{$windowValue}++;
 		}
 		# For now print it out
-		foreach $key (sort keys %windowHash){
-			$kmerTableHash{$key}{$fastaKey}=$windowHash{$key};
-			# print OUT "$key\t$windowHash{$key}\t$fastaKey\n";
+		foreach my $key (sort keys %windowHash){
+			$TestVal = %windowHash -> {$key};
+			$skip = 1 if ($TestVal >= $maxCount);
+			# mean
+			$MeanSum = $MeanSum + $TestVal;
+			++$MeanCounter;
+			# \mean
+		}
+		next if ($skip == 1);
+		foreach my $key (sort keys %windowHash){
+			$TestVal = %windowHash -> {$key};
+			print OUT "$fastaKey\t$TestVal\t$key\n";
 		}
 	}
-	return %kmerTableHash;
+	$Mean = $MeanSum / $MeanCounter;
+	print STDERR "Mean unfiltered $window mer frequency is $Mean\n";
 }
 
 sub FilterKmerSpectrum {
@@ -132,15 +143,10 @@ sub FilterKmerSpectrum {
 
 my %Fasta = ReadInFasta(\*IN);
 # print Dumper \%Fasta;
-my %kmerHash = SlideForKmerSpectrum(\%Fasta);
-# Undefine hash to save memory
-undef %{$Fasta};
-# print Dumper \%kmerHash;
-# print "$_\n" for sort keys %kmerHash;
-FilterKmerSpectrum(\%kmerHash);
+SlideForKmerSpectrum(\%Fasta);
 
-close(IN)
-close(OUT)
+close(IN);
+close(OUT);
 
 # Get the toal time to run the script
 my $end_run = time();
