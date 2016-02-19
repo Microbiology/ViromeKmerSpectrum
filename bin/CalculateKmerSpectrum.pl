@@ -32,7 +32,8 @@ my $skip = 0;
 my $maxCount = 1000;
 my $Mean;
 my $MeanCounter;
-my $MeanSum;
+my $MeanSum = 0;
+my $progress;
 
 # Set the options
 GetOptions(
@@ -84,7 +85,12 @@ sub ReadInFasta {
 sub SlideForKmerSpectrum {
 	print "Running sliding window\n";
 	my $fastaHash = shift;
+	my $KeyCount = keys %{$fastaHash};
+	my $ProgressCounter = 1;
 	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
+		$progress = 100 * $ProgressCounter / $KeyCount;
+		print STDERR "\rProgress: $progress \%";
+		++$ProgressCounter;
 		my $TestVal = 0;
 		# Reset counter and hash
 		undef %windowHash;
@@ -109,36 +115,11 @@ sub SlideForKmerSpectrum {
 		next if ($skip == 1);
 		foreach my $key (sort keys %windowHash){
 			$TestVal = %windowHash -> {$key};
-			print OUT "$fastaKey\t$TestVal\t$key\n";
+			print OUT "$key\t$TestVal\t$fastaKey\n";
 		}
 	}
 	$Mean = $MeanSum / $MeanCounter;
-	print STDERR "Mean unfiltered $window mer frequency is $Mean\n";
-}
-
-sub FilterKmerSpectrum {
-	print "Filtering the spectrum\n";
-	my $KmerReadHash = shift;
-	foreach my $KmerKey (sort keys %$KmerReadHash) {
-		my $TestVal = 0;
-		$skip = 0;
-		# Iterate through each hash
-		foreach my $IdKey (sort keys %{ $KmerReadHash -> {$KmerKey} }) {
-			$TestVal = $KmerReadHash -> {$KmerKey}{$IdKey};
-			$skip = 1 if ($TestVal >= $maxCount);
-			# mean
-			$MeanSum = $MeanSum + $TestVal;
-			++$MeanCounter;
-			# \mean
-		}
-		next if ($skip == 1);
-		foreach my $IdKey (sort keys %{ $KmerReadHash -> {$KmerKey} }) {
-			$TestVal = $KmerReadHash -> {$KmerKey}{$IdKey};
-			print OUT "$KmerKey\t$TestVal\t$IdKey\n";
-		}
-	}
-	$Mean = $MeanSum / $MeanCounter;
-	print STDERR "Mean unfiltered $window mer frequency is $Mean\n";
+	print STDERR "\nMean unfiltered $window mer frequency is $Mean\n";
 }
 
 my %Fasta = ReadInFasta(\*IN);
