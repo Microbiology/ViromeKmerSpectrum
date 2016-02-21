@@ -167,7 +167,7 @@ sub BcDistanceFromReference {
 			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) );
 			# print "BC is $referenceID\n";
 			# Save the result into a hash
-			$BrayCurtisHash{$fastaKey}{$BrayCurtis} = $referenceID;
+			$BrayCurtisHash{$fastaKey}{$referenceID} = $BrayCurtis;
 		}
 	}
 	return %BrayCurtisHash;
@@ -180,7 +180,7 @@ sub IdentityScores {
 		my $counter = 0;
 		print OUT "Query: $queryID\n";
 		# Get the top 5 distances
-		foreach my $BCvalue (sort keys %{$ResultHash -> {$queryID}}) {
+		foreach my $BCvalue (sort { %{$ResultHash -> {$queryID}} -> {$a} <=> %{$ResultHash -> {$queryID}} -> {$b} } keys %{$ResultHash -> {$queryID}}) {
 			last if ($counter == 6);
 			$HitID = %{$ResultHash} -> {$queryID}{$BCvalue};
 			print OUT "\t$BCvalue: $HitID\n";
