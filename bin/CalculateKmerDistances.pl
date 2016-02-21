@@ -18,6 +18,8 @@ my %windowHash;
 my %ReferenceHash;
 my %referenceHash;
 my %BrayCurtisHash;
+my %frequency;
+my %WindowResult;
 my $windowValue;
 my $opt_help;
 my $input;
@@ -133,13 +135,15 @@ sub BcDistanceFromReference {
 		print STDERR "\rProgress: $progress \%";
 		++$ProgressCounter;
 		my $TotalReferenceCount = 0;
+		my $TotalCount = 0;
 		# Get kmer frequency for this sequence
-		my %WindowResult = &ReturnSlidingWindow($fastaSeq);
-		my $TotalCount = &GetFrequencyCount(\%WindowResult);
+		undef %WindowResult;
+		%WindowResult = &ReturnSlidingWindow($fastaSeq);
+		$TotalCount = &GetFrequencyCount(\%WindowResult);
 		# Calculate distance from each reference
 		foreach my $referenceID (sort keys %{$referenceHash}) {
 			my $BrayCurtis = 0;
-			my %frequency;
+			undef %frequency;
 			while (my ($key, $value) = each(%WindowResult)) {
 				$frequency{$key} = $value;
 			}
@@ -158,8 +162,6 @@ sub BcDistanceFromReference {
 					$LesserValueSum = $LesserValueSum + $ReferenceCount;
 				}
 			}
-			# print "Lesser sum is $LesserValueSum\n";
-			# print "Reference count is $TotalReferenceCount\n";
 			# Calculate Bray Curtis Distance
 			next if ($TotalCount == 0 || $TotalReferenceCount == 0);
 			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) );
@@ -191,7 +193,7 @@ my %Fasta = &ReadInFasta(\*IN);
 my %TestFasta = &ReadInFasta(\*TEST);
 my %referencekmer = &CreateKmerHash(\%Fasta);
 my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
-print Dumper \%Results;
+# print Dumper \%Results;
 &IdentityScores(\%Results);
 
 close(IN);
