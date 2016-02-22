@@ -88,6 +88,16 @@ sub ReadInFasta {
 	return %FastaHash;
 }
 
+sub ReverseCompliment {
+	# Take in a string of nucleotides
+	my $fastaSeq = shift;
+	# Get the compliment sequences of the gene
+	my $OutputSeq =~ tr/ACGT/TGCA/;
+	# Reverse to finish getting reverse compliment
+	$OutputSeq = reverse $OutputSeq;
+	return $OutputSeq;
+}
+
 sub ReturnSlidingWindow {
 	# Get fasta sequence string as variable
 	my $fastaSeq = shift;
