@@ -34,6 +34,7 @@ my $FastaID;
 my $ReferenceCount;
 my $referenceHash;
 my $HitID;
+my $outformat;
 
 # Set the options
 GetOptions(
@@ -41,6 +42,7 @@ GetOptions(
 	'i|input=s' => \$input,
 	't|test=s' => \$test,
 	'o|output=s' => \$output,
+	'f|outformat=s' => \$outformat,
 	'w|window=n' => \$window
 );
 
@@ -49,6 +51,7 @@ pod2usage(-verbose => 1) && exit if defined $opt_help;
 open(IN, "<$input") || die "Unable to read $input: $!";
 open(TEST, "<$test") || die "Unable to read $test: $!";
 open(OUT, ">$output") || die "Unable to write to $output: $!";
+open(OUTFMT, ">$outformat") || die "Unable to write to $outformat: $!";
 
 sub ReadInFasta {
 	print "Reading fasta\n";
@@ -144,17 +147,21 @@ sub BcDistanceFromReference {
 		foreach my $referenceID (sort keys %{$referenceHash}) {
 			my $BrayCurtis = 0;
 			undef %frequency;
-			while (my ($key, $value) = each(%WindowResult)) {
+			while (my ($key, $value) = each(%{$referenceHash} -> {$referenceID})) {
 				$frequency{$key} = $value;
 			}
 			$TotalReferenceCount = &GetFrequencyCount(\%frequency);
+			# print "Ref Count is $TotalReferenceCount\n";
+			# print "Total count is $TotalCount\n";
 			# Sum less of shared kmer sequences
 			my $LesserValueSum = 0;
-			while (my ($KmerSeq, $KmerCount) = each(%frequency)) {
+			while (my ($KmerSeq, $KmerCount) = each(\%WindowResult)) {
+				$ReferenceCount = 0;
 				# Here we are iterating through query kmers
 				next unless (exists %{$referenceHash} -> {$referenceID}{$KmerSeq});
 				my $ReferenceCount = %{$referenceHash} -> {$referenceID}{$KmerSeq};
-				# print "Kmer is $ReferenceCount\n";
+				# print "Reference is $ReferenceCount\n";
+				# print "Kmer is $KmerCount\n";
 				# Add on lesser of the two shared counts
 				if ($ReferenceCount >= $KmerCount) {
 					$LesserValueSum = $LesserValueSum + $KmerCount;
@@ -165,7 +172,8 @@ sub BcDistanceFromReference {
 			# Calculate Bray Curtis Distance
 			next if ($TotalCount == 0 || $TotalReferenceCount == 0);
 			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) );
-			# print "BC is $referenceID\n";
+			# print "$fastaKey\t$referenceID\t$BrayCurtis\n";
+			# print "$LesserValueSum\t$TotalCount\t$TotalReferenceCount\n";
 			# Save the result into a hash
 			$BrayCurtisHash{$fastaKey}{$referenceID} = $BrayCurtis;
 		}
@@ -179,6 +187,10 @@ sub IdentityScores {
 	foreach my $queryID (sort keys %{$ResultHash}) {
 		my $counter = 0;
 		print OUT "Query: $queryID\n";
+		foreach my $BCvalue (sort keys %{$ResultHash -> {$queryID}}) {
+			$HitID = %{$ResultHash} -> {$queryID}{$BCvalue};
+			print OUTFMT "$queryID\t$HitID\t$BCvalue\n";
+		}
 		# Get the top 5 distances
 		foreach my $BCvalue (sort { %{$ResultHash -> {$queryID}} -> {$a} <=> %{$ResultHash -> {$queryID}} -> {$b} } keys %{$ResultHash -> {$queryID}}) {
 			last if ($counter == 6);
