@@ -35,6 +35,7 @@ my $ReferenceCount;
 my $referenceHash;
 my $HitID;
 my $outformat;
+my $reverse = '';
 
 # Set the options
 GetOptions(
@@ -43,7 +44,8 @@ GetOptions(
 	't|test=s' => \$test,
 	'o|output=s' => \$output,
 	'f|outformat=s' => \$outformat,
-	'w|window=n' => \$window
+	'w|window=n' => \$window,
+	'r|reverse' => \$reverse
 );
 
 pod2usage(-verbose => 1) && exit if defined $opt_help;
@@ -92,15 +94,17 @@ sub ReverseCompliment {
 	# Take in a string of nucleotides
 	my $fastaSeq = shift;
 	# Get the compliment sequences of the gene
-	my $OutputSeq =~ tr/ACGT/TGCA/;
+	$fastaSeq =~ tr/ACGT/TGCA/;
 	# Reverse to finish getting reverse compliment
-	$OutputSeq = reverse $OutputSeq;
-	return $OutputSeq;
+	$fastaSeq = reverse $fastaSeq;
+	return $fastaSeq;
 }
 
 sub ReturnSlidingWindow {
 	# Get fasta sequence string as variable
 	my $fastaSeq = shift;
+	my $reverseSeq = '';
+	$reverseSeq = &ReverseCompliment($fastaSeq);
 	undef %windowHash;
 	$windowValue = 0;
 	$length = length($fastaSeq) - 1;
@@ -109,6 +113,11 @@ sub ReturnSlidingWindow {
 		# print "Interating $interation\n";
 		$windowValue = substr $fastaSeq, $interation, $window;
 		# Count the occurnace of that window sequence
+		$windowHash{$windowValue}++;
+		# Also run reverse compliment if specified
+		next unless ($reverse);
+		$windowValue = 0;
+		$windowValue = substr $reverseSeq, $interation, $window;
 		$windowHash{$windowValue}++;
 	}
 	# Return frequencies as hash
@@ -157,7 +166,7 @@ sub BcDistanceFromReference {
 		foreach my $referenceID (sort keys %{$referenceHash}) {
 			my $BrayCurtis = 0;
 			undef %frequency;
-			while (my ($key, $value) = each(%{$referenceHash} -> {$referenceID})) {
+			while (my ($key, $value) = each( $referenceHash -> {$referenceID}) ) {
 				$frequency{$key} = $value;
 			}
 			$TotalReferenceCount = &GetFrequencyCount(\%frequency);
@@ -168,8 +177,8 @@ sub BcDistanceFromReference {
 			while (my ($KmerSeq, $KmerCount) = each(\%WindowResult)) {
 				$ReferenceCount = 0;
 				# Here we are iterating through query kmers
-				next unless (exists %{$referenceHash} -> {$referenceID}{$KmerSeq});
-				my $ReferenceCount = %{$referenceHash} -> {$referenceID}{$KmerSeq};
+				next unless (exists $referenceHash -> {$referenceID}{$KmerSeq});
+				my $ReferenceCount = $referenceHash -> {$referenceID}{$KmerSeq};
 				# print "Reference is $ReferenceCount\n";
 				# print "Kmer is $KmerCount\n";
 				# Add on lesser of the two shared counts
@@ -198,21 +207,23 @@ sub IdentityScores {
 		my $counter = 0;
 		print OUT "Query: $queryID\n";
 		foreach my $BCvalue (sort keys %{$ResultHash -> {$queryID}}) {
-			$HitID = %{$ResultHash} -> {$queryID}{$BCvalue};
+			$HitID = $ResultHash -> {$queryID}{$BCvalue};
 			print OUTFMT "$queryID\t$HitID\t$BCvalue\n";
 		}
 		# Get the top 5 distances
-		foreach my $BCvalue (sort { %{$ResultHash -> {$queryID}} -> {$a} <=> %{$ResultHash -> {$queryID}} -> {$b} } keys %{$ResultHash -> {$queryID}}) {
+		foreach my $BCvalue (sort { $ResultHash -> {$queryID} -> {$a} <=> $ResultHash -> {$queryID} -> {$b} } keys $ResultHash -> {$queryID}) {
 			last if ($counter == 6);
-			$HitID = %{$ResultHash} -> {$queryID}{$BCvalue};
+			$HitID = $ResultHash -> {$queryID}{$BCvalue};
 			print OUT "\t$BCvalue: $HitID\n";
 			$counter++;
 		}
 	}
 }
 
+print STDERR "As requested, running additional reverse compliment.\n" if ($reverse);
 my %Fasta = &ReadInFasta(\*IN);
 my %TestFasta = &ReadInFasta(\*TEST);
+print "Creating reference hash.\n";
 my %referencekmer = &CreateKmerHash(\%Fasta);
 my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
 # print Dumper \%Results;
