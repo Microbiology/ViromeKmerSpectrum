@@ -145,6 +145,20 @@ sub CreateKmerHash {
 	return %ReferenceHash;
 }
 
+sub HashRandomSubsample {
+	undef %InHash;
+	my ($InHash, $subcount) = shift;
+	my $totalHashCount = &GetFrequencyCount(\%InHash);
+	# Input is the resulting subsample, so calculate how much needs
+	# to be randomly subtracted from the hash.
+	my $correctCount = $totalHashCount - $subcount;
+	print STDERR "Subsampling to depth $subcount\n";
+	foreach my $subiter (0..$correctCount) {
+		$InHash{(keys %InHash)[rand keys %InHash]}--;
+	}
+	return %InHash;
+}
+
 sub BcDistanceFromReference {
 	my ($queryHash, $referenceHash) = @_;
 	my $ProgressCounter = 1;
