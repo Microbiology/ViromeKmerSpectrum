@@ -168,7 +168,7 @@ sub HashRandomSubsample {
 	my $correctCount = $totalHashCount - $subcount;
 	# print STDERR "corrected count is $correctCount\n";
 	# print STDERR "corrected count is $correctCount\n";
-	foreach my $subiter (1..$correctCount) {
+	for (1 .. $correctCount) { # THIS CAN BE WHILE, NOT FOREACH
 		# print STDERR "iteration is $subiter\n";
 		$key = (keys \%{$InHash})[rand keys \%{$InHash}];
 		# print STDERR "KEY IS $key\n";
