@@ -250,12 +250,13 @@ sub BcDistanceFromReference {
 			# Sum less of shared kmer sequences
 			my $LesserValueSum = 0;
 			while (my ($KmerSeq, $KmerCount) = each(\%NewWindowResult)) {
+				# print "Kmer is $KmerSeq\n";
 				$ReferenceCount = 0;
 				# Here we are iterating through query kmers
-				next unless (exists my $frequency -> {$KmerSeq});
-				my $ReferenceCount = $frequency -> {$KmerSeq};
+				next unless (exists %frequency -> {$KmerSeq});
+				my $ReferenceCount = %frequency -> {$KmerSeq};
+				# print STDERR "MADE IT\n";
 				# print "Reference is $ReferenceCount\n";
-				# print "Kmer is $KmerCount\n";
 				# Add on lesser of the two shared counts
 				if ($ReferenceCount >= $KmerCount) {
 					$LesserValueSum = $LesserValueSum + $KmerCount;
