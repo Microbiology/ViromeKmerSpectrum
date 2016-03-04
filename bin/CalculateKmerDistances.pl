@@ -116,7 +116,6 @@ sub ReturnSlidingWindow {
 	$length = length($fastaSeq) - 1;
 	$correct = $length - $window;
 	foreach my $interation (0 .. $correct) {
-		# print "Interating $interation\n";
 		$windowValue = substr $fastaSeq, $interation, $window;
 		# Count the occurnace of that window sequence
 		$windowHash{$windowValue}++;
@@ -147,7 +146,6 @@ sub CreateKmerHash {
 	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
 		my $TestVal = 0;
 		my %WindowResult = &ReturnSlidingWindow($fastaSeq);
-		# my $TotalCount = &GetFrequencyCount(\%WindowResult);
 		# Add individual kmer counts to master hash
 		while (my ($key, $value) = each(%WindowResult)) {
 			$ReferenceHash{$fastaKey}{$key} = $value;
@@ -159,32 +157,21 @@ sub CreateKmerHash {
 sub HashRandomSubsample {
 	undef %InHash;
 	my ($InHash, $subcount) = @_;
-	# print Dumper \%{$InHash};
-	# print STDERR "Subsampling to depth $subcount\n";
 	my $totalHashCount = &GetFrequencyCount(\%{$InHash});
-	# print STDERR "input hash count is $totalHashCount\n";
 	# Input is the resulting subsample, so calculate how much needs
 	# to be randomly subtracted from the hash.
 	my $correctCount = $totalHashCount - $subcount;
-	# print STDERR "corrected count is $correctCount\n";
-	# print STDERR "corrected count is $correctCount\n";
-	for (1 .. $correctCount) { # THIS CAN BE WHILE, NOT FOREACH
-		# print STDERR "iteration is $subiter\n";
+	for (1 .. $correctCount) {
 		$key = (keys \%{$InHash})[rand keys \%{$InHash}];
-		# print STDERR "KEY IS $key\n";
 		my $valueint = $InHash -> {$key};
-		# print STDERR "VALUE IS $valueint\n";
 		$InHash -> {$key}--;
 		my $valueafter = $InHash -> {$key};
 		$valueafter = $valueafter + 1;
-		# print STDERR "VALUE IS $valueint\n";
 		# Some quality control
 		die "The subsampling is not subtracting properly: $!" unless ($valueint == $valueafter);
 		die "Subsampling is giving negative counts and that makes no sense: $!" if ($valueint < 0);
 		delete($InHash -> {$key}) if ($InHash -> {$key} == 0);
 	}
-	# print Dumper \%{$InHash};
-	# print "$InHash\n";
 	return %{$InHash};
 }
 
@@ -194,17 +181,14 @@ sub BcDistanceFromReference {
 	my $TestKeyCount = keys %{$queryHash};
 	# Get distance for each query sequence
 	while (my ($fastaKey, $fastaSeq) = each(%{$queryHash})) {
-		# print STDERR "Reading sample $fastaKey\n";
 		my $progress = 100 * $ProgressCounter / $TestKeyCount;
 		print STDERR "\rProgress: $progress \%";
 		++$ProgressCounter;
 		# Get kmer frequency for this sequence
 		undef %WindowResult;
 		%WindowResult = &ReturnSlidingWindow($fastaSeq);
-		# print Dumper \%WindowResult;
 		# Calculate distance from each reference
 		foreach my $referenceID (sort keys %{$referenceHash}) {
-			# print STDERR "Referencing $referenceID\n";
 			my $BrayCurtis = 0;
 			my $TotalReferenceCount = 0;
 			my $TotalCount = 0;
@@ -214,36 +198,26 @@ sub BcDistanceFromReference {
 
 			# Get the count for the query
 			$TotalCount = &GetFrequencyCount(\%WindowResult);
-			# print "Total query frequency is $TotalCount\n";
 
 			# Make hash frequency which will contain subsampled kmer
 			# frequency of the current loop reference.
 			while (my ($key, $value) = each( $referenceHash -> {$referenceID}) ) {
 				$frequencyint{$key} = $value;
 			}
-			# print STDERR "FREQINT\n";
-			# print Dumper \%frequencyint;
 			# Subample the reference freq hash
 			$TotalReferenceCount = &GetFrequencyCount(\%frequencyint);
-			# print "Total reference frequency is $TotalReferenceCount\n";
-			# print Dumper \%frequencyint;
 			if ($TotalCount < $TotalReferenceCount) {
-				# print "Reference is greater.\n";
 				%frequency = &HashRandomSubsample(\%frequencyint, $TotalCount);
 				%NewWindowResult = %WindowResult;
 			} elsif ($TotalCount > $TotalReferenceCount) {
-				# print "Query is greater.\n";
 				%NewWindowResult = &HashRandomSubsample(\%WindowResult, $TotalReferenceCount);
 				%frequency = %frequencyint;
 			} elsif ($TotalCount == $TotalReferenceCount) {
-				# print "Reference same length as query.\n";
 				%frequency = %frequencyint;
 				%NewWindowResult = %WindowResult;
 			}
-			# print Dumper \%frequency;
 			$TotalReferenceCount = &GetFrequencyCount(\%frequency);
 			my $NewQueryCount = &GetFrequencyCount(\%NewWindowResult);
-			# print STDERR "RESULT: Query = $NewQueryCount\nReference = $TotalReferenceCount\n";
 			# Make sure the subsampling has both hashes equal
 			die "Subsampling did not provide equal frequency counts: $!" unless ($NewQueryCount == $TotalReferenceCount);
 
@@ -255,8 +229,6 @@ sub BcDistanceFromReference {
 				# Here we are iterating through query kmers
 				next unless (exists %frequency -> {$KmerSeq});
 				my $ReferenceCount = %frequency -> {$KmerSeq};
-				# print STDERR "MADE IT\n";
-				# print "Reference is $ReferenceCount\n";
 				# Add on lesser of the two shared counts
 				if ($ReferenceCount >= $KmerCount) {
 					$LesserValueSum = $LesserValueSum + $KmerCount;
@@ -267,8 +239,6 @@ sub BcDistanceFromReference {
 			# Calculate Bray Curtis Distance
 			next if ($TotalCount == 0 || $TotalReferenceCount == 0);
 			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) );
-			# print "$fastaKey\t$referenceID\t$BrayCurtis\n";
-			# print "$LesserValueSum\t$TotalCount\t$TotalReferenceCount\n";
 			# Save the result into a hash
 			$BrayCurtisHash{$fastaKey}{$referenceID} = $BrayCurtis;
 		}
@@ -302,7 +272,6 @@ my %TestFasta = &ReadInFasta(\*TEST);
 print "Creating reference hash.\n";
 my %referencekmer = &CreateKmerHash(\%Fasta);
 my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
-# print Dumper \%Results;
 &IdentityScores(\%Results);
 
 close(IN);
