@@ -266,17 +266,27 @@ sub IdentityScores {
 	}
 }
 
+# Now run the subroutines defined above
+
+# Remind the users that the reverse compliment was requested
 print STDERR "As requested, running additional reverse compliment.\n" if ($reverse);
+# Read in the querry fasta
 my %Fasta = &ReadInFasta(\*IN);
+# Read in the reference fasta
 my %TestFasta = &ReadInFasta(\*TEST);
 print "Creating reference hash.\n";
+# Create a kmer hash from the reference file
 my %referencekmer = &CreateKmerHash(\%Fasta);
+# Run Bray Curtis Distance
 my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
+# Format the scores and print to output
 &IdentityScores(\%Results);
 
+# Close out
 close(IN);
 close(OUT);
 close(TEST);
+close(OUTFMT);
 
 # Get the toal time to run the script
 my $end_run = time();
