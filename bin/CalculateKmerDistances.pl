@@ -9,11 +9,13 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use Data::Dumper;
+use List::Util 'shuffle';
 # Timer
 my $start_run = time();
 
 # Set variables
 my %InHash;
+my %OutHash;
 my %FastaHash;
 my %CounterHash;
 my %windowHash;
@@ -156,39 +158,41 @@ sub CreateKmerHash {
 
 sub HashRandomSubsample {
 	undef %InHash;
+	undef %OutHash;
 	my ($InHash, $subcount) = @_;
 	my $totalHashCount = &GetFrequencyCount(\%{$InHash});
-	# Input is the resulting subsample, so calculate how much needs
-	# to be randomly subtracted from the hash.
-	my $correctCount = $totalHashCount - $subcount;
-	for (1 .. $correctCount) {
-		$key = (keys \%{$InHash})[rand keys \%{$InHash}];
-		my $valueint = $InHash -> {$key};
-		$InHash -> {$key}--;
-		my $valueafter = $InHash -> {$key};
-		$valueafter = $valueafter + 1;
-		# Some quality control
-		die "The subsampling is not subtracting properly: $!" unless ($valueint == $valueafter);
-		die "Subsampling is giving negative counts and that makes no sense: $!" if ($valueint < 0);
-		delete($InHash -> {$key}) if ($InHash -> {$key} == 0);
+	my @InArray=(0)x$totalHashCount;
+	# Convert hash to array
+	my @InArray = map { ($_) x $InHash -> {$_}} keys \%{$InHash};
+	@InArray = shuffle(@InArray);
+	@InArray = splice(@InArray, 0, $subcount);
+	foreach my $interation (@InArray) {
+		# Count the occurnace of that window sequence
+		$OutHash{$interation}++;
 	}
-	return %{$InHash};
+	# print Dumper \%OutHash;
+	return %OutHash;
 }
 
 sub BcDistanceFromReference {
 	my ($queryHash, $referenceHash) = @_;
 	my $ProgressCounter = 1;
 	my $TestKeyCount = keys %{$queryHash};
+	my $RefKeysCount = keys %{$referenceHash};
 	# Get distance for each query sequence
 	while (my ($fastaKey, $fastaSeq) = each(%{$queryHash})) {
 		my $progress = 100 * $ProgressCounter / $TestKeyCount;
-		print STDERR "\rProgress: $progress \%";
+		my $refprogcounter = 1;
+		# print STDERR "\rProgress: $progress \%";
 		++$ProgressCounter;
 		# Get kmer frequency for this sequence
 		undef %WindowResult;
 		%WindowResult = &ReturnSlidingWindow($fastaSeq);
 		# Calculate distance from each reference
 		foreach my $referenceID (sort keys %{$referenceHash}) {
+			my $refProgress = 100 * $refprogcounter / $RefKeysCount;
+			print STDERR "\rProgress: $progress % -- $refProgress %";
+			++$refprogcounter;
 			my $BrayCurtis = 0;
 			my $TotalReferenceCount = 0;
 			my $TotalCount = 0;
@@ -292,5 +296,3 @@ close(OUTFMT);
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print STDERR "\nCalculated kmer distances in $run_time seconds.\n";
-
-
