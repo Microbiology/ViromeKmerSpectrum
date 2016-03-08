@@ -163,7 +163,7 @@ sub HashRandomSubsample {
 	my $totalHashCount = &GetFrequencyCount(\%{$InHash});
 	my @InArray=(0)x$totalHashCount;
 	# Convert hash to array
-	my @InArray = map { ($_) x $InHash -> {$_}} keys \%{$InHash};
+	@InArray = map { ($_) x $InHash -> {$_}} keys \%{$InHash};
 	@InArray = shuffle(@InArray);
 	@InArray = splice(@InArray, 0, $subcount);
 	foreach my $interation (@InArray) {
@@ -295,4 +295,4 @@ close(OUTFMT);
 # Get the toal time to run the script
 my $end_run = time();
 my $run_time = $end_run - $start_run;
-print STDERR "\nCalculated kmer distances in $run_time seconds.\n";
+print STDOUT "\nRUNTIME\t$window\t$run_time\n";
