@@ -3,19 +3,17 @@
 # Pat Schloss Lab
 # University of Michigan
 
-# Load in modules
-module load R/3.2.3
-
 # NOTE: I wrote this to be run locally, not on a server
 
 # Set the variables to be used in this script
-export WorkingDirectory=/home/ghannig/git/ViromeKmerSpectrum/data/
+export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
 export Output='LengthBenchmark'
 
-export LocalPath=/home/ghannig/git/ViromeKmerSpectrum/bin/
+export LocalPath=/Users/Hannigan/git/ViromeKmerSpectrum/bin/
+export FigurePath=/Users/Hannigan/git/ViromeKmerSpectrum/Figures/
 
-export TrainingSet=/home/ghannig/git/ViromeKmerSpectrum/data/BlastnBenchmark/trainingSet.fa
-export TestSet=/home/ghannig/git/ViromeKmerSpectrum/data/BlastnBenchmark/testSet.fa
+export TrainingSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/trainingSub.fa
+export TestSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/trainingSubContigs.fa
 
 # Make the output directory and move to the working directory
 echo Creating output directory...
@@ -28,36 +26,56 @@ ModelWithLength () {
 	# 3 = Input testing set
 	echo Window size is ${1}
 
-	perl ${LocalPath}CalculateKmerSpectrum.pl \
+	perl ${LocalPath}CalculateKmerDistances.pl \
 		-i ${2} \
-		-o ./${Output}/trainingKmer.tsv \
-		-w ${1}
-
-	perl ${LocalPath}CalculateKmerSpectrum.pl \
-		-i ${3} \
-		-o ./${Output}/testingKmer.tsv \
-		-w ${1}
-
-	arow=$(wc -l ./${Output}/trainingKmer.tsv | sed 's/^ *//' | sed 's/ .*//')
-	brow=$(wc -l ./${Output}/testingKmer.tsv | sed 's/^ *//' | sed 's/ .*//')
-	echo Train length is ${arow}
-	echo Test length is ${brow}
-
-	# Run kmer spectra through predictive model and collect output
-	Rscript ${LocalPath}ReturnModelResults.R \
-		-r ./${Output}/trainingKmer.tsv \
-		-t ./${Output}/testingKmer.tsv \
-		-a ${arow} \
-		-b ${brow} \
-		-s ./${Output}/${1}-scree.pdf \
-		> ./${Output}/${1}-ModelAccuracyOutput.tsv
+		-t ${3} \
+		-o ./${Output}/${1}-Result.tsv \
+		-f ./${Output}/${1}-ResultFormat.tsv \
+		-w ${1} \
+		-r \
+		> ./${Output}/${1}-BenchmarkTime.tsv
 }
 
 export -f ModelWithLength
 
-for i in $(seq 4 4 40); do
+for i in $(seq 4 4 44); do
 	ModelWithLength \
 		${i} \
 		${TrainingSet} \
 		${TestSet}
 done
+
+# Combine the time files
+cat \
+	./${Output}/*-BenchmarkTime.tsv \
+	> ./${Output}/TotalBenchTime.tsv
+
+# Get only the RUNTIME lines
+grep RUNTIME \
+	./${Output}/TotalBenchTime.tsv \
+	> ./${Output}/TotalBenchTimeFormat.tsv
+
+# Plot out the time over kmers
+Rscript ${LocalPath}PlotKmerTimeLength.R \
+	-i ./${Output}/TotalBenchTimeFormat.tsv \
+	-o ${FigurePath}TotalBenchTimeContigs.pdf \
+	-p ${FigurePath}TotalBenchTimeContigs.png \
+	-t "Kmer Length vs Time Benchmark"
+
+rm ./${Output}/ResultingDistance.tsv
+
+# Get confidence score in annotations by length
+for i in $(seq 4 4 44); do
+	echo Number is $i
+	awk -v seq=$i \
+		'{ if ($1 == $3) {print $1"\t"seq"\t"$2"\tTRUE_ID"} else {print $1"\t"seq"\t"$2"\tFALSE_ID"} }' \
+		./${Output}/${i}-ResultFormat.tsv \
+		>> ./${Output}/ResultingDistance.tsv
+done
+
+Rscript ${LocalPath}PlotKmerLengthAcc.R \
+	-i ./${Output}/ResultingDistance.tsv \
+	-o ${FigurePath}TotalBenchAccContigs.pdf \
+	-p ${FigurePath}TotalBenchAccContigs.png \
+	-t "Kmer Length vs Confidence"
+
