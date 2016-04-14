@@ -45,10 +45,7 @@ my $HitID;
 my $outformat;
 my $reverse = '';
 my $key;
-
-my $maxProcs = 4;
-my $pl = Parallel::Loops->new($maxProcs);
-$pl->share( \%BrayCurtisHash );
+my $processors = 1;
 
 # Set the options
 GetOptions(
@@ -58,6 +55,7 @@ GetOptions(
 	'o|output=s' => \$output,
 	'f|outformat=s' => \$outformat,
 	'w|window=n' => \$window,
+	'p|processors=n' => \$processors,
 	'r|reverse' => \$reverse
 );
 
@@ -141,7 +139,7 @@ sub GetFrequencyCount {
 	undef %CounterHash;
 	my $CounterHash = shift;
 	my $TotalCounter = 0;
-	while (my ($key, $value) = each(%{$CounterHash})) {
+	while (my ($key, $value) = each(%CounterHash)) {
 		$TotalCounter = $TotalCounter + $value;
 	}
 	return $TotalCounter;
@@ -162,14 +160,17 @@ sub CreateKmerHash {
 	return %ReferenceHash;
 }
 
+my $pl = Parallel::Loops->new($processors);
+$pl->share( %BrayCurtisHash );
+
 sub HashRandomSubsample {
 	undef %InHash;
 	undef %OutHash;
 	my ($InHash, $subcount) = @_;
-	my $totalHashCount = &GetFrequencyCount(\%{$InHash});
+	my $totalHashCount = &GetFrequencyCount(%InHash);
 	my @InArray=(0)x$totalHashCount;
 	# Convert hash to array
-	@InArray = map { ($_) x $InHash -> {$_}} keys \%{$InHash};
+	@InArray = map { ($_) x $InHash -> {$_}} keys %InHash;
 	@InArray = shuffle(@InArray);
 	@InArray = splice(@InArray, 0, $subcount);
 	foreach my $interation (@InArray) {
@@ -177,7 +178,7 @@ sub HashRandomSubsample {
 		$OutHash{$interation}++;
 	}
 	# print Dumper \%OutHash;
-	return %OutHash;
+	return \%OutHash;
 }
 
 sub BcDistanceFromReference {
@@ -195,9 +196,16 @@ sub BcDistanceFromReference {
 		undef %WindowResult;
 		%WindowResult = &ReturnSlidingWindow($fastaSeq);
 		# Calculate distance from each reference
-		foreach my $referenceID (sort keys %{$referenceHash}) {
+		my @arraysub;
+		foreach my $linekey (sort keys %{$referenceHash}) {
+			# print "$linekey\n";
+			push @arraysub, $linekey;
+		}
+		$pl->foreach( \@arraysub, sub {
+			# print "$_\n";
+			my $referenceID = $_;
 			my $refProgress = 100 * $refprogcounter / $RefKeysCount;
-			print STDERR "\rProgress: $progress % -- $refProgress %";
+			# print STDERR "\rProgress: $progress % -- $refProgress %";
 			++$refprogcounter;
 			my $BrayCurtis = 0;
 			my $TotalReferenceCount = 0;
@@ -215,9 +223,9 @@ sub BcDistanceFromReference {
 				$frequencyint{$key} = $value;
 			}
 			# Subample the reference freq hash
-			$TotalReferenceCount = &GetFrequencyCount(\%frequencyint);
+			$TotalReferenceCount = &GetFrequencyCount(%frequencyint);
 			if ($TotalCount < $TotalReferenceCount) {
-				%frequency = &HashRandomSubsample(\%frequencyint, $TotalCount);
+				%frequency = &HashRandomSubsample(%frequencyint, $TotalCount);
 				%NewWindowResult = %WindowResult;
 			} elsif ($TotalCount > $TotalReferenceCount) {
 				%NewWindowResult = &HashRandomSubsample(\%WindowResult, $TotalReferenceCount);
@@ -247,11 +255,10 @@ sub BcDistanceFromReference {
 				}
 			}
 			# Calculate Bray Curtis Distance
-			next if ($TotalCount == 0 || $TotalReferenceCount == 0);
-			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) );
+			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) ) unless ($TotalCount == 0 || $TotalReferenceCount == 0);
 			# Save the result into a hash
-			$BrayCurtisHash{$fastaKey}{$referenceID} = $BrayCurtis;
-		}
+			$BrayCurtisHash{$fastaKey}{$referenceID} = $BrayCurtis unless ($TotalCount == 0 || $TotalReferenceCount == 0);
+		});
 	}
 	return %BrayCurtisHash;
 }
@@ -288,6 +295,7 @@ print "Creating reference hash.\n";
 # Create a kmer hash from the reference file
 my %referencekmer = &CreateKmerHash(\%Fasta);
 # Run Bray Curtis Distance
+print "Getting Distances.\n";
 my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
 # Format the scores and print to output
 &IdentityScores(\%Results);

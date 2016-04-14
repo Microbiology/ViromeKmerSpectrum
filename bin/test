@@ -1,0 +1,15 @@
+#! /bin/bash
+
+echo Testing CalculateKmerDistances.pl...
+
+rm -r ./tmp
+mkdir ./tmp
+
+time perl CalculateKmerDistancesPar.pl \
+	-i ../data/testWholeSub.fa \
+	-t ../data/testWholeSub.fa \
+	-o ./tmp/test.tsv \
+	-f ./tmp/testFormat.tsv \
+	-r \
+	-w 16 \
+	-p 64
