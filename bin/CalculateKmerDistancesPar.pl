@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#! /usr/bin/perl
 # Geoffrey Hannigan
 # Pat Schloss Lab
 # University of Michigan
@@ -15,6 +15,7 @@ use Parallel::Loops;
 my $start_run = time();
 
 # Set variables
+my %MidHash;
 my %InHash;
 my %OutHash;
 my %FastaHash;
@@ -139,7 +140,7 @@ sub GetFrequencyCount {
 	undef %CounterHash;
 	my $CounterHash = shift;
 	my $TotalCounter = 0;
-	while (my ($key, $value) = each(%CounterHash)) {
+	while (my ($key, $value) = each(%{$CounterHash})) {
 		$TotalCounter = $TotalCounter + $value;
 	}
 	return $TotalCounter;
@@ -161,16 +162,15 @@ sub CreateKmerHash {
 }
 
 my $pl = Parallel::Loops->new($processors);
-$pl->share( %BrayCurtisHash );
 
 sub HashRandomSubsample {
 	undef %InHash;
 	undef %OutHash;
 	my ($InHash, $subcount) = @_;
-	my $totalHashCount = &GetFrequencyCount(%InHash);
+	my $totalHashCount = &GetFrequencyCount(\%{$InHash});
 	my @InArray=(0)x$totalHashCount;
 	# Convert hash to array
-	@InArray = map { ($_) x $InHash -> {$_}} keys %InHash;
+	@InArray = map { ($_) x $InHash -> {$_}} keys \%{$InHash};
 	@InArray = shuffle(@InArray);
 	@InArray = splice(@InArray, 0, $subcount);
 	foreach my $interation (@InArray) {
@@ -178,7 +178,7 @@ sub HashRandomSubsample {
 		$OutHash{$interation}++;
 	}
 	# print Dumper \%OutHash;
-	return \%OutHash;
+	return %OutHash;
 }
 
 sub BcDistanceFromReference {
@@ -188,22 +188,27 @@ sub BcDistanceFromReference {
 	my $RefKeysCount = keys %{$referenceHash};
 	# Get distance for each query sequence
 	while (my ($fastaKey, $fastaSeq) = each(%{$queryHash})) {
+		# print "Fasta key is $fastaKey\n";
 		my $progress = 100 * $ProgressCounter / $TestKeyCount;
 		my $refprogcounter = 1;
-		# print STDERR "\rProgress: $progress \%";
+		print STDERR "\rProgress: $progress \%";
 		++$ProgressCounter;
 		# Get kmer frequency for this sequence
 		undef %WindowResult;
 		%WindowResult = &ReturnSlidingWindow($fastaSeq);
+		# print Dumper \%WindowResult;
 		# Calculate distance from each reference
 		my @arraysub;
 		foreach my $linekey (sort keys %{$referenceHash}) {
 			# print "$linekey\n";
 			push @arraysub, $linekey;
 		}
+		undef %MidHash;
+		# print Dumper \%MidHash;
+		$pl->share( \%MidHash );
 		$pl->foreach( \@arraysub, sub {
-			# print "$_\n";
 			my $referenceID = $_;
+			# print "ID is $referenceID\n";
 			my $refProgress = 100 * $refprogcounter / $RefKeysCount;
 			# print STDERR "\rProgress: $progress % -- $refProgress %";
 			++$refprogcounter;
@@ -215,7 +220,9 @@ sub BcDistanceFromReference {
 			undef %NewWindowResult;
 
 			# Get the count for the query
+			# print Dumper \%WindowResult;
 			$TotalCount = &GetFrequencyCount(\%WindowResult);
+			# print "Total count is $TotalCount\n";
 
 			# Make hash frequency which will contain subsampled kmer
 			# frequency of the current loop reference.
@@ -223,18 +230,24 @@ sub BcDistanceFromReference {
 				$frequencyint{$key} = $value;
 			}
 			# Subample the reference freq hash
-			$TotalReferenceCount = &GetFrequencyCount(%frequencyint);
+			$TotalReferenceCount = &GetFrequencyCount(\%frequencyint);
+			# print "Total reference count $TotalReferenceCount\n";
 			if ($TotalCount < $TotalReferenceCount) {
-				%frequency = &HashRandomSubsample(%frequencyint, $TotalCount);
+				# print "Problem 1\n";
+				%frequency = &HashRandomSubsample(\%frequencyint, $TotalCount);
 				%NewWindowResult = %WindowResult;
 			} elsif ($TotalCount > $TotalReferenceCount) {
+				# print "Problem 2\n";
 				%NewWindowResult = &HashRandomSubsample(\%WindowResult, $TotalReferenceCount);
 				%frequency = %frequencyint;
 			} elsif ($TotalCount == $TotalReferenceCount) {
+				# print "Problem 3\n";
 				%frequency = %frequencyint;
 				%NewWindowResult = %WindowResult;
 			}
+			# print Dumper \%frequency;
 			$TotalReferenceCount = &GetFrequencyCount(\%frequency);
+			# print "New total reference count $TotalReferenceCount\n";
 			my $NewQueryCount = &GetFrequencyCount(\%NewWindowResult);
 			# Make sure the subsampling has both hashes equal
 			die "Subsampling did not provide equal frequency counts: $!" unless ($NewQueryCount == $TotalReferenceCount);
@@ -244,6 +257,7 @@ sub BcDistanceFromReference {
 			while (my ($KmerSeq, $KmerCount) = each(\%NewWindowResult)) {
 				# print "Kmer is $KmerSeq\n";
 				$ReferenceCount = 0;
+				my $frequency = \%frequency;
 				# Here we are iterating through query kmers
 				next unless (exists $frequency -> {$KmerSeq});
 				my $ReferenceCount = $frequency -> {$KmerSeq};
@@ -253,13 +267,28 @@ sub BcDistanceFromReference {
 				} elsif ($ReferenceCount < $KmerCount) {
 					$LesserValueSum = $LesserValueSum + $ReferenceCount;
 				}
+				# print "Lesser value sum is $LesserValueSum\n";
 			}
 			# Calculate Bray Curtis Distance
-			$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) ) unless ($TotalCount == 0 || $TotalReferenceCount == 0);
-			# Save the result into a hash
-			$BrayCurtisHash{$fastaKey}{$referenceID} = $BrayCurtis unless ($TotalCount == 0 || $TotalReferenceCount == 0);
+			# print "Final total count is $TotalCount\n";
+			# print "Final total reference count $TotalReferenceCount\n";
+			unless ($TotalCount == 0 || $TotalReferenceCount == 0) {
+				$BrayCurtis = 1 - ( (2 * $LesserValueSum) / ($TotalCount + $TotalReferenceCount) );
+				# print "Resulting BC: $BrayCurtis\n";
+				# Save the result into a hash
+				$MidHash{$referenceID} = $BrayCurtis;
+			}
+			# print "Outside BC: $BrayCurtis\n";
+			# print Dumper \%BrayCurtisHash;
 		});
+		while (my ($key, $value) = each( %MidHash ) ) {
+				$BrayCurtisHash{$fastaKey}{$key} = $value;
+		}
+		# print "Fasta Key is $fastaKey\n";
+		# print Dumper \%MidHash;
+		# print Dumper \%BrayCurtisHash;
 	}
+	# print Dumper \%BrayCurtisHash;
 	return %BrayCurtisHash;
 }
 
