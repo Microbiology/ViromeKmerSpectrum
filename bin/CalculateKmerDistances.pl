@@ -10,7 +10,6 @@ use Getopt::Long;
 use Pod::Usage;
 use Data::Dumper;
 use List::Util 'shuffle';
-use Parallel::Loops;
 # Timer
 my $start_run = time();
 
@@ -24,7 +23,6 @@ my %ReferenceHash;
 my %referenceHash;
 my %BrayCurtisHash;
 my %frequency;
-my $frequency;
 my %frequencyint;
 my %WindowResult;
 my %NewWindowResult;
@@ -46,10 +44,6 @@ my $outformat;
 my $reverse = '';
 my $key;
 
-my $maxProcs = 4;
-my $pl = Parallel::Loops->new($maxProcs);
-$pl->share( \%BrayCurtisHash );
-
 # Set the options
 GetOptions(
 	'h|help' => \$opt_help,
@@ -63,10 +57,10 @@ GetOptions(
 
 pod2usage(-verbose => 1) && exit if defined $opt_help;
 
-open(my $IN, "<", "$input") || die "Unable to read $input: $!";
-open(my $TEST, "<", "$test") || die "Unable to read $test: $!";
-open(my $OUT, ">", "$output") || die "Unable to write to $output: $!";
-open(my $OUTFMT, ">", "$outformat") || die "Unable to write to $outformat: $!";
+open(IN, "<$input") || die "Unable to read $input: $!";
+open(TEST, "<$test") || die "Unable to read $test: $!";
+open(OUT, ">$output") || die "Unable to write to $output: $!";
+open(OUTFMT, ">$outformat") || die "Unable to write to $outformat: $!";
 
 sub ReadInFasta {
 	print "Reading fasta\n";
@@ -237,8 +231,8 @@ sub BcDistanceFromReference {
 				# print "Kmer is $KmerSeq\n";
 				$ReferenceCount = 0;
 				# Here we are iterating through query kmers
-				next unless (exists $frequency -> {$KmerSeq});
-				my $ReferenceCount = $frequency -> {$KmerSeq};
+				next unless (exists %frequency -> {$KmerSeq});
+				my $ReferenceCount = %frequency -> {$KmerSeq};
 				# Add on lesser of the two shared counts
 				if ($ReferenceCount >= $KmerCount) {
 					$LesserValueSum = $LesserValueSum + $KmerCount;
@@ -261,16 +255,16 @@ sub IdentityScores {
 	# Return the results for each query sequence
 	foreach my $queryID (sort keys %{$ResultHash}) {
 		my $counter = 0;
-		print $OUT "Query: $queryID\n";
+		print OUT "Query: $queryID\n";
 		foreach my $BCvalue (sort keys %{$ResultHash -> {$queryID}}) {
 			$HitID = $ResultHash -> {$queryID}{$BCvalue};
-			print $OUTFMT "$queryID\t$HitID\t$BCvalue\n";
+			print OUTFMT "$queryID\t$HitID\t$BCvalue\n";
 		}
 		# Get the top 5 distances
 		foreach my $BCvalue (sort { $ResultHash -> {$queryID} -> {$a} <=> $ResultHash -> {$queryID} -> {$b} } keys $ResultHash -> {$queryID}) {
 			last if ($counter == 6);
 			$HitID = $ResultHash -> {$queryID}{$BCvalue};
-			print $OUT "\t$BCvalue: $HitID\n";
+			print OUT "\t$BCvalue: $HitID\n";
 			$counter++;
 		}
 	}
@@ -281,9 +275,9 @@ sub IdentityScores {
 # Remind the users that the reverse compliment was requested
 print STDERR "As requested, running additional reverse compliment.\n" if ($reverse);
 # Read in the querry fasta
-my %Fasta = &ReadInFasta(\*$IN);
+my %Fasta = &ReadInFasta(\*IN);
 # Read in the reference fasta
-my %TestFasta = &ReadInFasta(\*$TEST);
+my %TestFasta = &ReadInFasta(\*TEST);
 print "Creating reference hash.\n";
 # Create a kmer hash from the reference file
 my %referencekmer = &CreateKmerHash(\%Fasta);
@@ -293,10 +287,10 @@ my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
 &IdentityScores(\%Results);
 
 # Close out
-close($IN);
-close($OUT);
-close($TEST);
-close($OUTFMT);
+close(IN);
+close(OUT);
+close(TEST);
+close(OUTFMT);
 
 # Get the toal time to run the script
 my $end_run = time();
