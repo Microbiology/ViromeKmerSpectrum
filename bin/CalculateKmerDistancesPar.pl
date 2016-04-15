@@ -138,7 +138,7 @@ sub ReturnSlidingWindow {
 
 sub GetFrequencyCount {
 	undef %CounterHash;
-	my $CounterHash = shift;
+	my ($CounterHash) = @_;
 	my $TotalCounter = 0;
 	while (my ($key, $value) = each(%{$CounterHash})) {
 		$TotalCounter = $TotalCounter + $value;
@@ -149,7 +149,7 @@ sub GetFrequencyCount {
 sub CreateKmerHash {
 	undef %ReferenceHash;
 	undef %FastaHash;
-	my $fastaHash = shift;
+	my ($fastaHash) = @_;
 	while (my ($fastaKey, $fastaSeq) = each(%{$fastaHash})) {
 		my $TestVal = 0;
 		my %WindowResult = &ReturnSlidingWindow($fastaSeq);
@@ -323,6 +323,7 @@ my %TestFasta = &ReadInFasta(\*$TEST);
 print "Creating reference hash.\n";
 # Create a kmer hash from the reference file
 my %referencekmer = &CreateKmerHash(\%Fasta);
+undef %Fasta;
 # Run Bray Curtis Distance
 print "Getting Distances.\n";
 my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
