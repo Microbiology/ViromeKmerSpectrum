@@ -355,7 +355,7 @@ Given two fasta files, this will calculate and compare the kmer frequency profil
 
 =head1 OPTIONS
 
-CreateTableOfContents.pl 
+CalculateKmerDistancesPar.pl 
 	-i <input fasta 1>
 	-t <input fasta 2>
 	-o <output file>
