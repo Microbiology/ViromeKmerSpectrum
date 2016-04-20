@@ -349,6 +349,8 @@ FilterFasta.pl
 
 =head1 SYNOPSIS
 
+Maintained by Geoffrey Hannigan (ghannig@umich.edu)
+
 Given two fasta files, this will calculate and compare the kmer frequency profiles of each sequence to every other sequence.
 
 =head1 OPTIONS
