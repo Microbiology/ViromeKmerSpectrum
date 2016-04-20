@@ -340,3 +340,45 @@ close($OUTFMT);
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print STDOUT "\nRUNTIME\t$window\t$run_time\n";
+
+# Add a help menu for the user
+
+=head1 NAME
+
+FilterFasta.pl
+
+=head1 SYNOPSIS
+
+Given two fasta files, this will calculate and compare the kmer frequency profiles of each sequence to every other sequence.
+
+=head1 OPTIONS
+
+CreateTableOfContents.pl 
+	-i <input fasta 1>
+	-t <input fasta 2>
+	-o <output file>
+	-f <formatted output file>
+	-w <kmer window size>
+	-p <processors>
+	-r <reverse compliment option>
+	-h <print helpful help menu> 
+
+=head1 ARGUMENTS
+
+-h | --help	Print this helpful help menu.
+
+-i | --input	Input fasta file for kmer comparison. This should be the smaller file.
+
+-t | --test Second fasta file for kmer comparison. This should be the larger file.
+
+-o | --output	Output file name. This will be a table showing the top five closest kmer profiles for each test sequence.
+
+-f | --outformat	Output file name. This will be a table including the distance for every comparison.
+
+-w | --window	The kmer length [number] to use for the analysis. Default is four (tetramer).
+
+-p | --processors	The [number] of processors to use for the analysis.
+
+-r | --reverse	Add this flag if you would like to include the reverse compliments of each sequence in the analysis.
+
+=cut
