@@ -1,6 +1,6 @@
-# ReturnModelResults.R
+# CnnModel.R
 # Geoffrey Hannigan
-# Pat Schoss Lab
+# Pat Schloss Lab
 # University of Michigan
 
 library(reshape2)
@@ -18,11 +18,7 @@ option_list = list(
               help="reference kmer spectrum", metavar="character"),
 	make_option(c("-t", "--test"), type="character", default=NULL, 
               help="test kmer spectrum", metavar="character"),
-  make_option(c("-a", "--arow"), type="numeric", default=NULL, 
-              help="row number for reference", metavar="numeric"),
-  make_option(c("-b", "--brow"), type="numeric", default=NULL, 
-              help="row number for test", metavar="numeric"),
-  make_option(c("-s", "--scree"), type="character", default=NULL, 
+  	make_option(c("-s", "--scree"), type="character", default=NULL, 
               help="scree figure output", metavar="character")
 ); 
  
@@ -31,8 +27,8 @@ opt = parse_args(opt_parser);
 
 #print("Reading in files", stderr())
 
-INPUT <- read.delim(file=opt$reference, sep="\t", header=F, colClasses = c("factor", "integer", "factor"), nrows=opt$arow, comment.char="")
-CONTIGS <- read.delim(file=opt$test, sep="\t", header=F, colClasses = c("factor", "integer", "factor"), nrows=opt$brow, comment.char="")
+INPUT <- read.delim(file=opt$reference, sep="\t", header=F, colClasses = c("factor", "integer", "factor"), comment.char="")
+CONTIGS <- read.delim(file=opt$test, sep="\t", header=F, colClasses = c("factor", "integer", "factor"), comment.char="")
 
 
 FormatForPredModel <- function(input) {
@@ -58,8 +54,6 @@ ReferenceList <- FormatForPredModel(INPUT)
 ReferenceDf <- as.data.frame(ReferenceList[1])
 ReferencePlot <- ReferenceList[2]
 
-print(head(ReferenceDf))
-
 ContigList <- FormatForPredModel(CONTIGS)
 ContigsDf <- as.data.frame(ContigList[1])
 ContigsPlot <- ContigList[2]
@@ -70,27 +64,8 @@ pdf(file=opt$scree, width=8, height=6)
   ContigsPlot
 dev.off()
 
-# # Get number of columns
-# ColCount <- ncol(ReferenceDf)
-# ColCountContigs <- ncol(ContigsDf)
 
-# # Create feature matrix and target vector
-# trainX <- ReferenceDf[,-ColCount]
-# # trainX <- as.data.frame(sapply(trainX, function(x) x/sum(x)))
-# trainy <- as.factor(ReferenceDf[,ColCount])
 
-# testX <- ContigsDf[,-ColCount]
-# # testX <- as.data.frame(sapply(testX, function(x) x/sum(x)))
-# testy <- as.factor(ContigsDf[,ColCount])
 
-# #print("Training model", stderr())
 
-# #Boost
-# model <-  C50::C5.0(trainX, trainy, trials=25)
 
-# #print("Testing model", stderr())
-
-# pred <- predict(model, testX)
-# results <- postResample(pred, testy)
-
-# write(results, stdout())

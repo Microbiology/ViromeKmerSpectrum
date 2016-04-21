@@ -57,10 +57,10 @@ GetOptions(
 
 pod2usage(-verbose => 1) && exit if defined $opt_help;
 
-open(IN, "<$input") || die "Unable to read $input: $!";
-open(TEST, "<$test") || die "Unable to read $test: $!";
-open(OUT, ">$output") || die "Unable to write to $output: $!";
-open(OUTFMT, ">$outformat") || die "Unable to write to $outformat: $!";
+open(my $IN, "<", "$input") || die "Unable to read $input: $!";
+open(my $TEST, "<", "$test") || die "Unable to read $test: $!";
+open(my $OUT, ">", "$output") || die "Unable to write to $output: $!";
+open(my $OUTFMT, ">", "$outformat") || die "Unable to write to $outformat: $!";
 
 sub ReadInFasta {
 	print "Reading fasta\n";
@@ -230,9 +230,10 @@ sub BcDistanceFromReference {
 			while (my ($KmerSeq, $KmerCount) = each(\%NewWindowResult)) {
 				# print "Kmer is $KmerSeq\n";
 				$ReferenceCount = 0;
+				my $frequency = \%frequency;
 				# Here we are iterating through query kmers
-				next unless (exists %frequency -> {$KmerSeq});
-				my $ReferenceCount = %frequency -> {$KmerSeq};
+				next unless (exists $frequency -> {$KmerSeq});
+				my $ReferenceCount = $frequency -> {$KmerSeq};
 				# Add on lesser of the two shared counts
 				if ($ReferenceCount >= $KmerCount) {
 					$LesserValueSum = $LesserValueSum + $KmerCount;

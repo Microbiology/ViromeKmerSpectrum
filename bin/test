@@ -6,10 +6,9 @@ rm -r ./tmp
 mkdir ./tmp
 
 time perl CalculateKmerDistancesPar.pl \
-	-i ../data/testWholeSub.fa \
-	-t ../data/testWholeSub.fa \
+	-i ../data/validate.fa \
+	-t ../data/validate.fa \
 	-o ./tmp/test.tsv \
 	-f ./tmp/testFormat.tsv \
-	-r \
-	-w 16 \
+	-w 24 \
 	-p 64

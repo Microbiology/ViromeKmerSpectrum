@@ -1,3 +1,4 @@
+#! /bin/bash
 # BenchmarkKmerLength.sh
 # Geoffrey Hannigan
 # Pat Schloss Lab
@@ -17,7 +18,7 @@ export TestSet=/Users/Hannigan/git/ViromeKmerSpectrum/data/trainingSubContigs.fa
 
 # Make the output directory and move to the working directory
 echo Creating output directory...
-cd ${WorkingDirectory}
+# cd ${WorkingDirectory}
 mkdir ./${Output}
 
 ModelWithLength () {
@@ -26,19 +27,20 @@ ModelWithLength () {
 	# 3 = Input testing set
 	echo Window size is ${1}
 
-	perl ${LocalPath}CalculateKmerDistances.pl \
+	perl ${LocalPath}CalculateKmerDistancesPar.pl \
 		-i ${2} \
 		-t ${3} \
 		-o ./${Output}/${1}-Result.tsv \
 		-f ./${Output}/${1}-ResultFormat.tsv \
 		-w ${1} \
 		-r \
+		-p 32 \
 		> ./${Output}/${1}-BenchmarkTime.tsv
 }
 
 export -f ModelWithLength
 
-for i in $(seq 4 4 44); do
+for i in $(seq 4 4 40); do
 	ModelWithLength \
 		${i} \
 		${TrainingSet} \
