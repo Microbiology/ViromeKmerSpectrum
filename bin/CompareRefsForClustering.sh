@@ -34,5 +34,5 @@ perl ../bin/CalculateKmerDistances.pl \
 	-t ${Genomes} \
 	-o ./${Output}/RefCompare.tsv \
 	-f ./${Output}/RefCompareFormat.tsv \
-	-w 5 \
-	-p 64
+	-w 5
+
