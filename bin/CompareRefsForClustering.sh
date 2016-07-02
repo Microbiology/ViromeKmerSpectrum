@@ -4,7 +4,8 @@
 # Pat Schloss Lab
 # University of Michigan
 
-#! /bin/bash
+module load perl/5.22.1
+module load perl-modules/5.22.1
 
 #PBS -N CompareRefsForClustering
 #PBS -q first
@@ -28,7 +29,7 @@ cd ${WorkingDirectory} || exit
 
 mkdir ./${Output}
 
-perl ../bin/CalculateKmerDistancesPar.pl \
+perl ../bin/CalculateKmerDistances.pl \
 	-i ${Genomes} \
 	-t ${Genomes} \
 	-o ./${Output}/RefCompare.tsv \
