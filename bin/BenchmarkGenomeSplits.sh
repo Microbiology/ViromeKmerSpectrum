@@ -30,7 +30,8 @@ perl ../bin/CalculateKmerDistancesPar.pl \
 	-o ./Kmerout.tsv \
 	-f ./KmerOutFormat.tsv \
 	-w 5 \
-	-p 64
+	-p 64 \
+	-r
 
 ${ncbibin}makeblastdb \
 	-dbtype nucl \
