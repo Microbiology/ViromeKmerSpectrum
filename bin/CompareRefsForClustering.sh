@@ -4,6 +4,14 @@
 # Pat Schloss Lab
 # University of Michigan
 
+#PBS -N CompareRefsForClustering
+#PBS -q first
+#PBS -l nodes=1:ppn=1,mem=40gb
+#PBS -l walltime=600:00:00
+#PBS -j oe
+#PBS -V
+#PBS -A schloss_lab
+
 # Set Variables
 export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
 export Output='CompareRefs'
