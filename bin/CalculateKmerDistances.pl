@@ -256,16 +256,16 @@ sub IdentityScores {
 	# Return the results for each query sequence
 	foreach my $queryID (sort keys %{$ResultHash}) {
 		my $counter = 0;
-		print OUT "Query: $queryID\n";
+		print $OUT "Query: $queryID\n";
 		foreach my $BCvalue (sort keys %{$ResultHash -> {$queryID}}) {
 			$HitID = $ResultHash -> {$queryID}{$BCvalue};
-			print OUTFMT "$queryID\t$HitID\t$BCvalue\n";
+			print $OUTFMT "$queryID\t$HitID\t$BCvalue\n";
 		}
 		# Get the top 5 distances
 		foreach my $BCvalue (sort { $ResultHash -> {$queryID} -> {$a} <=> $ResultHash -> {$queryID} -> {$b} } keys $ResultHash -> {$queryID}) {
 			last if ($counter == 6);
 			$HitID = $ResultHash -> {$queryID}{$BCvalue};
-			print OUT "\t$BCvalue: $HitID\n";
+			print $OUT "\t$BCvalue: $HitID\n";
 			$counter++;
 		}
 	}
@@ -276,9 +276,9 @@ sub IdentityScores {
 # Remind the users that the reverse compliment was requested
 print STDERR "As requested, running additional reverse compliment.\n" if ($reverse);
 # Read in the querry fasta
-my %Fasta = &ReadInFasta(\*IN);
+my %Fasta = &ReadInFasta(\*$IN);
 # Read in the reference fasta
-my %TestFasta = &ReadInFasta(\*TEST);
+my %TestFasta = &ReadInFasta(\*$TEST);
 print "Creating reference hash.\n";
 # Create a kmer hash from the reference file
 my %referencekmer = &CreateKmerHash(\%Fasta);
@@ -288,10 +288,10 @@ my %Results = &BcDistanceFromReference(\%TestFasta, \%referencekmer);
 &IdentityScores(\%Results);
 
 # Close out
-close(IN);
-close(OUT);
-close(TEST);
-close(OUTFMT);
+close($IN);
+close($OUT);
+close($TEST);
+close($OUTFMT);
 
 # Get the toal time to run the script
 my $end_run = time();
