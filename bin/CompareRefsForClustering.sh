@@ -13,13 +13,13 @@
 #PBS -A schloss_lab
 
 # Set Variables
-export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
+export WorkingDirectory=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/data/
 export Output='CompareRefs'
 
-export LocalPath=/Users/Hannigan/git/ViromeKmerSpectrum/bin/
-export FigurePath=/Users/Hannigan/git/ViromeKmerSpectrum/Figures/
+export LocalPath=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/bin/
+export FigurePath=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/Figures/
 
-export Genomes=/Users/Hannigan/git/ViromeKmerSpectrum/data/PhageSVAFormat.fa
+export Genomes=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/data/PhageSVAFormat.fa
 
 # Load in the proper perl module
 module load perl/5.22.1 
