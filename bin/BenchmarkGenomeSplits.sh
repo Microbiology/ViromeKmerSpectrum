@@ -63,4 +63,4 @@ cut -f 1,2,12 ./BlastOut.tsv \
 Rscript ../bin/ProcessComparison.R \
 	-k KmerForAnalysis.tsv \
 	-b BlastForAnalysis.tsv \
-	-o ${FigurePath}ComparisonBarGraph
+	-o ${FigurePath}ComparisonBarGraph.pdf

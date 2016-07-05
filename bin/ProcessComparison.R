@@ -36,9 +36,12 @@ labels <- c("Correct Kmer", "Correct Blast")
 
 df <- data.frame(values, labels)
 
-png(opt$out, height=4, width=3, units="in", res=800)
+pdf(opt$out, height=4, width=3)
 	ggplot(df, aes(x=labels, y=values)) +
-		theme_bw() +
+		theme_classic() +
+		theme(
+			axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+			axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid')) +
 		geom_bar(stat="identity", fill="tomato3") +
 		ggtitle("Accuracy\nAssembling Genomes") +
 		ylab("Correctly Identified Genomes\nAt Strain Level (%)") +
