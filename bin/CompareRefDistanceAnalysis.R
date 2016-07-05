@@ -25,7 +25,7 @@ option_list <- list(
 opt_parser <- OptionParser(option_list=option_list);
 opt <- parse_args(opt_parser);
 
-inputtable <- read.delim(file = "../data/CompareRefs/RefCompareFormat.tsv", sep = "\t", header = F)
+inputtable <- read.delim(file = "../data/CompareRefs/RefCompareSkinFormat.tsv", sep = "\t", header = F)
 
 dcasttable <- dcast(inputtable, formula = V1~V3, value.var = "V2")
 rownames(dcasttable) <- dcasttable$V1
@@ -34,6 +34,7 @@ ordnmds <- metaMDS(dcasttable,k=2)
 ordnmdsfit = data.frame(MDS1 = ordnmds$points[,1], MDS2 = ordnmds$points[,2])
 ordnmdsfit$ID <- rownames(ordnmdsfit)
 ordnmdsfit$ID <- sub("[Pp]hage_.*", "phage", ordnmdsfit$ID, perl=TRUE)
+ordnmdsfit$ID <- sub("contig.*", "Contig_phage", ordnmdsfit$ID, perl=TRUE)
 
 ordnmdsfit <- ordnmdsfit[ordnmdsfit$ID %in% names(table(ordnmdsfit$ID))[table(ordnmdsfit$ID) >= 0],]
 

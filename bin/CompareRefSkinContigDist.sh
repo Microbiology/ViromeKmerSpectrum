@@ -13,13 +13,13 @@
 #PBS -A schloss_lab
 
 # Set Variables
-export WorkingDirectory=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/data/
+export WorkingDirectory=/Users/Hannigan/git/ViromeKmerSpectrum/data/
 export Output='CompareRefs'
 
-export LocalPath=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/bin/
-export FigurePath=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/Figures/
+export LocalPath=/Users/Hannigan/git/ViromeKmerSpectrum/bin/
+export FigurePath=/Users/Hannigan/git/ViromeKmerSpectrum/Figures/
 
-export Genomes=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/data/SkinMergeWithBacFungiNoBlock.fa
+export Genomes=/Users/Hannigan/git/ViromeKmerSpectrum/data/SkinMergeWithBacFungiNoBlockFormat.fa
 
 # Move and make output dir
 cd ${WorkingDirectory} || exit
@@ -32,5 +32,4 @@ perl ../bin/CalculateKmerDistances.pl \
 	-o ./${Output}/RefCompareSkin.tsv \
 	-f ./${Output}/RefCompareSkinFormat.tsv \
 	-w 5 \
-	-p 16 \
 	-r
