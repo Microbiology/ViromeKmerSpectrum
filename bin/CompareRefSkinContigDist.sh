@@ -18,7 +18,7 @@ cd ${WorkingDirectory} || exit
 
 mkdir ./${Output}
 
-perl ../bin/CalculateKmerDistancesPar.pl \
+perl ../bin/CalculateKmerDistances.pl \
 	-i ${Genomes} \
 	-t ${Genomes} \
 	-o ./${Output}/RefCompareSkin.tsv \
