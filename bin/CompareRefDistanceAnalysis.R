@@ -35,6 +35,7 @@ ordnmdsfit = data.frame(MDS1 = ordnmds$points[,1], MDS2 = ordnmds$points[,2])
 ordnmdsfit$ID <- rownames(ordnmdsfit)
 ordnmdsfit$ID <- sub("[Pp]hage_.*", "phage", ordnmdsfit$ID, perl=TRUE)
 ordnmdsfit$ID <- sub("contig.*", "Contig_phage", ordnmdsfit$ID, perl=TRUE)
+ordnmdsfit$ID <- sub("gi.*", "Bacteria_And_Fungi_Controls", ordnmdsfit$ID, perl=TRUE)
 
 ordnmdsfit <- ordnmdsfit[ordnmdsfit$ID %in% names(table(ordnmdsfit$ID))[table(ordnmdsfit$ID) >= 0],]
 
@@ -60,7 +61,7 @@ wssplot <- function(data, nc, seed=1234){
 wssplot(dcasttable,nc=15)
 
 set.seed(1234)
-fit<-kmeans(dcasttable,3)
+fit<-kmeans(dcasttable,6)
 clusplot(as.matrix(dcasttable), fit$cluster,shade=TRUE, color=TRUE,main="K-means 3 Clustering- Virome - Time Points 2&3")
 
 ct.km <- table(ordnmdsfit$ID, fit$cluster)
@@ -71,7 +72,7 @@ classes <- data.frame(fit$cluster)
 classes$IDnew <- rownames(classes)
 ordnmdsfit$IDnew <- rownames(ordnmdsfit)
 mergedord <- merge(ordnmdsfit, classes, by="IDnew")
-mergedord <- mergedord[mergedord$ID %in% names(table(mergedord$ID))[table(mergedord$ID) >= 3],]
+mergedord <- mergedord[mergedord$ID %in% names(table(mergedord$ID))[table(mergedord$ID) >= 4],]
 
 plot2 <- ggplot(mergedord, aes(x=MDS1, y=MDS2, colour=ID, shape=factor(fit.cluster))) +
 		theme_classic() +
@@ -83,6 +84,6 @@ plot2 <- ggplot(mergedord, aes(x=MDS1, y=MDS2, colour=ID, shape=factor(fit.clust
 		ggtitle("Kmer Bray-Curtis")
 plot2
 
-pdf(file="../Figures/RefOrdination.pdf", width=6, height=4)
+pdf(file="../Figures/RefOrdination.pdf", width=9, height=6)
 	plot2
 dev.off()
