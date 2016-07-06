@@ -5,8 +5,7 @@
 
 OBJECTS = \
 	./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota.txt \
-	./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa \
-	./doc/manuscript.pdf
+	./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa
 
 all: $(OBJECTS)
 
