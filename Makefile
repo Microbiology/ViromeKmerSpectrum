@@ -4,7 +4,7 @@
 # Allow for everything to be run with all
 
 OBJECTS = \
-	./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota.txt \
+	./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota-tmp.txt \
 	./data/eukaryota.txt \
 	./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa
 
