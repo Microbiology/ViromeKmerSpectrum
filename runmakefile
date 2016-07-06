@@ -1,0 +1,20 @@
+#! /bin/bash
+# runmakefile
+# Geoffrey Hannigan
+# Pat Schloss Lab
+# University of Michigan
+# Use this to submit the makefile to the server
+
+#PBS -N runmakefile
+#PBS -q first
+#PBS -l nodes=1:ppn=1,mem=40gb
+#PBS -l walltime=600:00:00
+#PBS -j oe
+#PBS -V
+#PBS -A schloss_lab
+
+# Set working directory
+cd /mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum || exit
+
+# Run make
+make all
