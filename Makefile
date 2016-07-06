@@ -14,7 +14,7 @@ all: $(OBJECTS)
 # Download Data #
 #################
 # Get the phage accession list from EBI
-./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota.txt :
+./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota-tmp.txt :
 	wget http://www.ebi.ac.uk/genomes/phage.txt -O ./data/phage.txt
 	wget http://www.ebi.ac.uk/genomes/bacteria.txt -O ./data/bacteria.txt
 	wget http://www.ebi.ac.uk/genomes/virus.txt -O ./data/virus.txt
