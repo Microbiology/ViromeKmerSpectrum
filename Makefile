@@ -6,7 +6,11 @@
 OBJECTS = \
 	./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota-tmp.txt \
 	./data/eukaryota.txt \
-	./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa
+	./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa \
+	./data/allReferences.fa \
+	./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv \
+	./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv \
+	./data/CompareRefs/compareviruses.tsv ./data/CompareRefs/compareviruses-format.tsv
 
 all: $(OBJECTS)
 
@@ -29,6 +33,34 @@ all: $(OBJECTS)
 # due to it trying to download multiple file classes.
 ./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa : ./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota.txt
 	bash ./bin/DownloadReferences.sh
+
+#####################################
+# Cluster Phages and Other Microbes #
+#####################################
+# Get together the fasta files
+./data/allReferences.fa : ./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa
+	cat ./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa > ./data/allReferences.fa
+
+./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv : ./data/allReferences.fa
+	bash ./bin/CompareRefsForClustering.sh \
+		"CompareRefs" \
+		./data/allReferences.fa \
+		"comparerefs"
+
+##################
+# Cluster Phages #
+##################
+./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv : ./data/PhageRef.fa
+	bash ./bin/CompareRefsForClustering.sh \
+		"CompareRefs" \
+		./data/PhageRef.fa \
+		"comparephages"
+
+./data/CompareRefs/compareviruses.tsv ./data/CompareRefs/compareviruses-format.tsv : ./data/VirusRef.fa
+	bash ./bin/CompareRefsForClustering.sh \
+		"CompareRefs" \
+		./data/VirusRef.fa \
+		"compareviruses"
 
 ####################
 # Write Manuscript #
