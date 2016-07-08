@@ -13,8 +13,6 @@
 #PBS -V
 #PBS -A schloss_lab
 
-# Set working directory
-cd /mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum || exit
-
 # Run make
 make all
+
