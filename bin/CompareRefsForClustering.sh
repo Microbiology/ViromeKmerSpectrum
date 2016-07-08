@@ -4,35 +4,25 @@
 # Pat Schloss Lab
 # University of Michigan
 
-#PBS -N CompareRefsForClustering
-#PBS -q first
-#PBS -l nodes=1:ppn=1,mem=40gb
-#PBS -l walltime=600:00:00
-#PBS -j oe
-#PBS -V
-#PBS -A schloss_lab
-
 # Set Variables
-export WorkingDirectory=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/data/
-export Output='CompareRefs'
+export Output=$1
 
-export LocalPath=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/bin/
-export FigurePath=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/Figures/
-
-export Genomes=/mnt/EXT/Schloss-data/ghannig/ViromeKmerSpectrum/data/PhageSVAFormat.fa
-
-# Load in the proper perl module
-module load perl/5.22.1 
+export Genomes=$2
+export OutputFile=$3 # Without file ext please
 
 # Move and make output dir
-cd ${WorkingDirectory} || exit
+mkdir ./data/${Output}
 
-mkdir ./${Output}
+perl ./bin/remove_block_fasta_format.pl ${Genomes} ${Genomes}.tmp
 
-perl ../bin/CalculateKmerDistances.pl \
-	-i ${Genomes} \
-	-t ${Genomes} \
-	-o ./${Output}/RefCompare.tsv \
-	-f ./${Output}/RefCompareFormat.tsv \
+perl ./bin/CalculateKmerDistancesPar.pl \
+	-i ${Genomes}.tmp \
+	-t ${Genomes}.tmp \
+	-o ./data/${Output}/${OutputFile}.tsv \
+	-f ./data/${Output}/${OutputFile}-format.tsv \
 	-w 5 \
-	-r
+	-r \
+	-p 8
+
+# Clean up
+rm ${Genomes}.tmp
