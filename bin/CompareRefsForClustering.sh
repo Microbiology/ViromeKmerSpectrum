@@ -4,6 +4,9 @@
 # Pat Schloss Lab
 # University of Michigan
 
+module load perl/5.22.1
+module load perl-modules/5.22.1
+
 # Set Variables
 export Output=$1
 
