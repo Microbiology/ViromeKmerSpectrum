@@ -18,14 +18,13 @@ mkdir ./data/${Output}
 
 perl ./bin/remove_block_fasta_format.pl ${Genomes} ${Genomes}.tmp
 
-perl ./bin/CalculateKmerDistancesPar.pl \
+perl ./bin/CalculateKmerDistances.pl \
 	-i ${Genomes}.tmp \
 	-t ${Genomes}.tmp \
 	-o ./data/${Output}/${OutputFile}.tsv \
 	-f ./data/${Output}/${OutputFile}-format.tsv \
 	-w 5 \
 	-r \
-	-p 8
 
 # Clean up
 rm ${Genomes}.tmp
