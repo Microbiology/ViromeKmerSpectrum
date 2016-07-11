@@ -7,7 +7,7 @@ DownloadGenomes () {
 	mkdir ./tmp
 	for ID in $(cut -c1-2 ${1} | sort | uniq); do
 		export AccString=$(cut -f 1 ${1} | egrep "^${ID}" | tr '\n' ',' | sed 's/,$//')
-		wget -q --show-progress "http://www.ebi.ac.uk/ena/data/view/${AccString}&display=fasta" -O ./tmp/Ref_${ID}.fa
+		wget -q "http://www.ebi.ac.uk/ena/data/view/${AccString}&display=fasta" -O ./tmp/Ref_${ID}.fa
 	done
 	cat ./tmp/Ref_*.fa > ${2}
 	rm -r ./tmp
