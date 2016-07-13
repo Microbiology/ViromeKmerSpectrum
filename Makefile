@@ -7,6 +7,7 @@ OBJECTS = \
 	./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota-tmp.txt \
 	./data/eukaryota.txt \
 	./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa \
+	./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/VirusRefSub.fa ./data/EukaryotaRefSub.fa \
 	./data/allReferences.fa \
 	./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv \
 	./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv \
@@ -34,12 +35,31 @@ all: $(OBJECTS)
 ./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa : ./data/phage.txt ./data/bacteria.txt ./data/virus.txt ./data/eukaryota.txt
 	bash ./bin/DownloadReferences.sh
 
+######################
+# Subset Fasta Files #
+######################
+# Phage
+./data/PhageRefSub.fa : ./data/PhageRef.fa
+	./bin/seqtk sample -s 100 ./data/PhageRef.fa 100 > ./data/PhageRefSub.fa
+
+# Virus
+./data/VirusRefSub.fa : ./data/VirusRef.fa
+	./bin/seqtk sample -s 100 ./data/VirusRef.fa 100 > ./data/VirusRefSub.fa
+
+# Bacteria
+./data/BacteriaRefSub.fa : ./data/BacteriaRef.fa
+	./bin/seqtk sample -s 100 ./data/BacteriaRef.fa 25 > ./data/BacteriaRefSub.fa
+
+# Eukaryotes
+./data/EukaryotaRefSub.fa : ./data/EukaryotaRef.fa
+	./bin/seqtk sample -s 100 ./data/EukaryotaRef.fa 5 > ./data/EukaryotaRefSub.fa
+
 #####################################
 # Cluster Phages and Other Microbes #
 #####################################
 # Get together the fasta files
-./data/allReferences.fa : ./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa
-	cat ./data/PhageRef.fa ./data/BacteriaRef.fa ./data/VirusRef.fa ./data/EukaryotaRef.fa > ./data/allReferences.fa
+./data/allReferences.fa : ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/VirusRefSub.fa ./data/EukaryotaRefSub.fa
+	cat ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/VirusRefSub.fa ./data/EukaryotaRefSub.fa > ./data/allReferences.fa
 
 ./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv : ./data/allReferences.fa
 	bash ./bin/CompareRefsForClustering.sh \
@@ -50,16 +70,16 @@ all: $(OBJECTS)
 ##################
 # Cluster Phages #
 ##################
-./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv : ./data/PhageRef.fa
+./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv : ./data/PhageRefSub.fa
 	bash ./bin/CompareRefsForClustering.sh \
 		"CompareRefs" \
-		./data/PhageRef.fa \
+		./data/PhageRefSub.fa \
 		"comparephages"
 
-./data/CompareRefs/compareviruses.tsv ./data/CompareRefs/compareviruses-format.tsv : ./data/VirusRef.fa
+./data/CompareRefs/compareviruses.tsv ./data/CompareRefs/compareviruses-format.tsv : ./data/VirusRefSub.fa
 	bash ./bin/CompareRefsForClustering.sh \
 		"CompareRefs" \
-		./data/VirusRef.fa \
+		./data/VirusRefSub.fa \
 		"compareviruses"
 
 ####################
