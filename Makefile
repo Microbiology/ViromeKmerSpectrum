@@ -53,8 +53,8 @@ all: $(OBJECTS)
 # Cluster Phages and Other Microbes #
 #####################################
 # Get together the fasta files
-./data/allReferences.fa : ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/VirusRefSub.fa ./data/EukaryotaRefSub.fa
-	cat ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/VirusRefSub.fa ./data/EukaryotaRefSub.fa > ./data/allReferences.fa
+./data/allReferences.fa : ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/EukaryotaRefSub.fa
+	cat ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/EukaryotaRefSub.fa > ./data/allReferences.fa
 
 ./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv : ./data/allReferences.fa
 	bash ./bin/CompareRefsForClustering.sh \
