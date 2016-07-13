@@ -25,7 +25,7 @@ perl ./bin/CalculateKmerDistancesPar.pl \
 	-f ./data/${Output}/${OutputFile}-format.tsv \
 	-w 5 \
 	-r \
-	-p 8
+	-p 4
 
 # Clean up
 rm ${Genomes}.tmp
