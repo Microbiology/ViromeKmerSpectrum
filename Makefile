@@ -10,8 +10,7 @@ OBJECTS = \
 	./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/VirusRefSub.fa ./data/EukaryotaRefSub.fa \
 	./data/allReferences.fa \
 	./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv \
-	./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv \
-	./data/CompareRefs/compareviruses.tsv ./data/CompareRefs/compareviruses-format.tsv
+	./data/CompareRefs/comparephages.tsv ./data/CompareRefs/comparephages-format.tsv ./data/CompareRefs/comparephages-formatfinal.tsv
 
 all: $(OBJECTS)
 
@@ -42,17 +41,13 @@ all: $(OBJECTS)
 ./data/PhageRefSub.fa : ./data/PhageRef.fa
 	./bin/seqtk sample -s 100 ./data/PhageRef.fa 100 > ./data/PhageRefSub.fa
 
-# Virus
-./data/VirusRefSub.fa : ./data/VirusRef.fa
-	./bin/seqtk sample -s 100 ./data/VirusRef.fa 100 > ./data/VirusRefSub.fa
-
 # Bacteria
 ./data/BacteriaRefSub.fa : ./data/BacteriaRef.fa
-	./bin/seqtk sample -s 100 ./data/BacteriaRef.fa 25 > ./data/BacteriaRefSub.fa
+	./bin/seqtk sample -s 100 ./data/BacteriaRef.fa 10 > ./data/BacteriaRefSub.fa
 
 # Eukaryotes
 ./data/EukaryotaRefSub.fa : ./data/EukaryotaRef.fa
-	./bin/seqtk sample -s 100 ./data/EukaryotaRef.fa 5 > ./data/EukaryotaRefSub.fa
+	./bin/seqtk sample -s 100 ./data/EukaryotaRef.fa 3 > ./data/EukaryotaRefSub.fa
 
 #####################################
 # Cluster Phages and Other Microbes #
@@ -76,11 +71,17 @@ all: $(OBJECTS)
 		./data/PhageRefSub.fa \
 		"comparephages"
 
-./data/CompareRefs/compareviruses.tsv ./data/CompareRefs/compareviruses-format.tsv : ./data/VirusRefSub.fa
-	bash ./bin/CompareRefsForClustering.sh \
-		"CompareRefs" \
-		./data/VirusRefSub.fa \
-		"compareviruses"
+# Format the phages
+./data/CompareRefs/comparephages-formatfinal.tsv : ./data/CompareRefs/comparephages-format.tsv
+	sed 's/[Pp]hage[^\t]*\t/Phage\t/' ./data/CompareRefs/comparephages-format.tsv \
+		| sed 's/[Pp]hage[^\t]*$/Phage/' \
+		| sed 's/ENA|\(\S*\)|\S* /\1 /g' \
+		| sed 's/\(\S* \S* \S* \)[^\t]*Phage/\1Phage/g' \
+		| sed 's/\(\S*\) \([^\t]*\)/\2 \1/g' \
+		| sed 's/\(\S*\) \(\S*\) Phage/\1__\2 Phage/g' \
+		| sed 's/ /_/g' \
+		| sed '$d' \
+		> ./data/CompareRefs/comparephages-formatfinal.tsv
 
 ####################
 # Write Manuscript #
