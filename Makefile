@@ -74,11 +74,11 @@ all: $(OBJECTS)
 	cat ./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv > ./data/allreferenceforawk.tsv
 
 ./data/CompareRefs/comparerefs-formatfinal.tsv : ./data/CompareRefs/comparerefs-format.tsv ./data/allreferenceforawk.tsv
-	awk -F "\t" 'FNR==NR { a[$1] = $2; next } { for( i in a ) if($1 ~ i) {print a[i]}"\t"$2"\t"$3 }' \
+	awk -F "\t" 'FNR==NR { a[$$1] = $$2; next } { for( i in a ) if($$1 ~ i) {print a[i]}"\t"$$2"\t"$$3 }' \
 		./data/allreferenceforawk.tsv \
 		./data/CompareRefs/comparerefs-format.tsv \
 	> ./data/CompareRefs/tmpref.tsv
-	awk -F "\t" 'FNR==NR { a[$1] = $2; next } { for( i in a ) if($3 ~ i) {print $1"\t"$2"\t"a[i] }' \
+	awk -F "\t" 'FNR==NR { a[$$1] = $$2; next } { for( i in a ) if($$3 ~ i) {print $$1"\t"$$2"\t"a[i] }' \
 		./data/allreferenceforawk.tsv \
 		./data/CompareRefs/tmpref.tsv \
 	> ./data/CompareRefs/comparerefs-formatfinal.tsv
