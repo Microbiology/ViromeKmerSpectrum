@@ -78,7 +78,7 @@ all: $(OBJECTS)
 		./data/allreferenceforawk.tsv \
 		./data/CompareRefs/comparerefs-format.tsv \
 	> ./data/CompareRefs/tmpref.tsv
-	awk -F "\t" 'FNR==NR { a[$$1] = $$2; next } { for( i in a ) if($$3 ~ i) {print $$1"\t"$$2"\t"a[i]}"_"i }' \
+	awk -F "\t" 'FNR==NR { a[$$1] = $$2; next } { for( i in a ) if($$3 ~ i) {print $$1"\t"$$2"\t"a[i]"_"i} }' \
 		./data/allreferenceforawk.tsv \
 		./data/CompareRefs/tmpref.tsv \
 	> ./data/CompareRefs/comparerefs-formatfinal.tsv
