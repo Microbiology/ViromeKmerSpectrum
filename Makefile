@@ -66,9 +66,9 @@ all: $(OBJECTS)
 # Format the resulting distance files to include the categories instead of specific names
 # First get list for reference array
 ./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv : ./data/phage.txt ./data/eukaryota.txt ./data/bacteria.txt
-	awk -F "\t" '{ print $1"\tPhage" }' ./data/phage.txt > ./data/phagereference.tsv
-	awk -F "\t" '{ print $1"\tEukaryota" }' ./data/eukaryota.txt > ./data/eukaryotareference.tsv
-	awk -F "\t" '{ print $1"\tBacteria" }' ./data/bacteria.txt > ./data/bacteriareference.tsv
+	awk -F "\t" '{ print $$1"\tPhage" }' ./data/phage.txt > ./data/phagereference.tsv
+	awk -F "\t" '{ print $$1"\tEukaryota" }' ./data/eukaryota.txt > ./data/eukaryotareference.tsv
+	awk -F "\t" '{ print $$1"\tBacteria" }' ./data/bacteria.txt > ./data/bacteriareference.tsv
 
 ./data/allreferenceforawk.tsv : ./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv
 	cat ./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv > ./data/allreferenceforawk.tsv
@@ -86,6 +86,7 @@ all: $(OBJECTS)
 	rm ./data/eukaryotareference.tsv
 	rm ./data/bacteriareference.tsv
 	rm ./data/CompareRefs/tmpref.tsv
+	rm ./data/allreferenceforawk.tsv
 
 ##################
 # Cluster Phages #
