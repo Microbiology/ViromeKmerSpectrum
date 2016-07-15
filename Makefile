@@ -56,11 +56,33 @@ all: $(OBJECTS)
 ./data/allReferences.fa : ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/EukaryotaRefSub.fa
 	cat ./data/PhageRefSub.fa ./data/BacteriaRefSub.fa ./data/EukaryotaRefSub.fa > ./data/allReferences.fa
 
+# Cluster the broad reference genomes
 ./data/CompareRefs/comparerefs.tsv ./data/CompareRefs/comparerefs-format.tsv : ./data/allReferences.fa
 	bash ./bin/CompareRefsForClustering.sh \
 		"CompareRefs" \
 		./data/allReferences.fa \
 		"comparerefs"
+
+# Format the resulting distance files to include the categories instead of specific names
+# First get list for reference array
+./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv : ./data/phage.txt ./data/eukaryota.txt ./data/bacteria.txt
+	awk '{ print $1"\tPhage" }' ./data/phage.txt > ./data/phagereference.tsv
+	awk '{ print $1"\tEukaryota" }' ./data/eukaryota.txt > ./data/eukaryotareference.tsv
+	awk '{ print $1"\tBacteria" }' ./data/bacteria.txt > ./data/bacteriareference.tsv
+
+./data/allreferenceforawk.tsv : ./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv
+	cat ./data/phagereference.tsv ./data/eukaryotareference.tsv ./data/bacteriareference.tsv > ./data/allreferenceforawk.tsv
+
+./data/CompareRefs/comparerefs-formatfinal.tsv : ./data/CompareRefs/comparerefs-format.tsv ./data/allreferenceforawk.tsv
+	awk -F "\t" 'FNR==NR { a[$1] = $2; next } { for( i in a ) if($1 ~ i) {print a[i]}"\t"$2"\t"$3 }' \
+		./data/allreferenceforawk.tsv \
+		./data/CompareRefs/comparerefs-format.tsv \
+	> ./data/CompareRefs/tmpref.tsv
+	awk -F "\t" 'FNR==NR { a[$1] = $2; next } { for( i in a ) if($3 ~ i) {print $1"\t"$2"\t"a[i] }' \
+		./data/allreferenceforawk.tsv \
+		./data/CompareRefs/tmpref.tsv \
+	> ./data/CompareRefs/comparerefs-formatfinal.tsv
+	rm ./data/CompareRefs/tmpref.tsv
 
 ##################
 # Cluster Phages #
